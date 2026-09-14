@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    (function() {
+      var stored = localStorage.getItem('rehab-theme');
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (stored === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else if (stored === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+      } else {
+        document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+      }
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5, user-scalable=yes">
+  <title>rehablix · Account Settings</title>
+  
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js" defer></script>
+  
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  
+  <!-- Existing Styles -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/auth.css">
+  <link rel="stylesheet" href="css/sets.css">
+  <link rel="stylesheet" href="css/invite-modal.css">
+</head>
+<body>
+  <!-- ===== Navbar (Same as existing website) ===== -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-left">
+        <div class="logo-text">
+          <span class="logo-lop">rehablix</span>
+          <span class="logo-full">settings</span>
+        </div>
+      </div>
+      <div class="nav-right">
+        <a href="index.html" class="icon-btn home-icon" aria-label="Home">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 9L12 3L21 9L21 20H15V14H9V20H3V9Z" stroke="currentColor" fill="none"/>
+          </svg>
+        </a>
+        
+          <button class="icon-btn theme-toggle" id="themeToggle" aria-label="theme mode">
+          <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+        
+        <!-- Login Button (visible when logged out) -->
+        <button id="loginBtn" class="btn-login" style="display: none;">
+          <i class="fas fa-sign-in-alt"></i> Login
+        </button>
+        
+        <!-- Profile Dropdown (visible when logged in) -->
+        <div class="profile-dropdown" id="profileDropdown" style="display: none;">
+          <button class="btn-profile" id="profileBtn">
+            <span class="profile-icon" id="profileIcon">👤</span>
+            <span class="profile-name" id="profileName">User</span>
+            <i class="fas fa-chevron-down" style="font-size: 0.7rem; opacity: 0.5;"></i>
+          </button>
+          <div class="dropdown-menu" id="dropdownMenu">
+            <button class="dropdown-item" id="profileMenuItem">
+              <span>👤</span> My Profile
+            </button>
+            <button class="dropdown-item" id="settingsMenuItem">
+              <span>⚙️</span> Settings
+            </button>
+            <div class="dropdown-divider"></div>
+            <a href="index.html" class="dropdown-item">
+              <span>🏠</span> Home
+            </a>
+            <button class="dropdown-item" id="logoutMenuItem">
+              <span>🚪</span> Logout
+            </button>
+          </div>
+        </div>
+        
+      
+      </div>
+    </div>
+  </nav>
+
+  <!-- ===== Main Content ===== -->
+  <main class="settings-main">
+    <div class="settings-container">
+      <!-- Page Header -->
+      <div class="settings-page-header">
+        <h1><i class="fas fa-cog"></i> Account Settings</h1>
+        <p class="settings-subtitle">Manage your profile, subscription, and preferences</p>
+      </div>
+
+      <!-- Settings Grid -->
+      <div class="settings-grid">
+        
+        <!-- Profile Card -->
+        <div class="settings-card">
+          <div class="card-header">
+            <i class="fas fa-user-circle"></i>
+            <h3>Profile Information</h3>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" id="profileNameInput" class="settings-input" placeholder="Your name">
+            </div>
+            <div class="form-group">
+              <label>Email Address</label>
+              <input type="email" id="profileEmail" class="settings-input" readonly disabled>
+              <small class="form-hint">Email cannot be changed directly. Contact support for assistance.</small>
+            </div>
+            <div class="form-group">
+              <label>Specialization</label>
+              <select id="profileSpecialization" class="settings-select">
+                <option value="">Select your area</option>
+                <option value="occupational therapy">Occupational Therapy</option>
+                <option value="psychology">Psychology</option>
+                <option value="speech therapy">Speech Therapy</option>
+                <option value="physiotherapy">Physiotherapy</option>
+                <option value="Doctor">Doctor/Consultant</option>
+              </select>
+            </div>
+            <button class="btn-settings-primary" id="updateProfileBtn">
+              <i class="fas fa-save"></i> Update Profile
+            </button>
+          </div>
+        </div>
+
+        <!-- Security Card -->
+        <div class="settings-card">
+          <div class="card-header">
+            <i class="fas fa-lock"></i>
+            <h3>Security</h3>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label>Current Password</label>
+              <input type="password" id="currentPassword" class="settings-input" placeholder="Enter current password">
+            </div>
+            <div class="form-group">
+              <label>New Password</label>
+              <input type="password" id="newPassword" class="settings-input" placeholder="Min. 6 characters">
+            </div>
+            <button class="btn-settings-secondary" id="changePasswordBtn">
+              <i class="fas fa-key"></i> Change Password
+            </button>
+          </div>
+        </div>
+
+        <!-- Subscription Card -->
+        <div class="settings-card">
+          <div class="card-header">
+            <i class="fas fa-tag"></i>
+            <h3>Your Subscription</h3>
+          </div>
+          <div class="card-body">
+            <div id="subscriptionInfo">
+              <div class="info-row">
+                <span class="info-label">Current Plan:</span>
+                <span class="info-value" id="subPlan">—</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Billing Cycle:</span>
+                <span class="info-value" id="subBilling">—</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Next Billing Date:</span>
+                <span class="info-value" id="subNextDate">—</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Auto-Renewal:</span>
+                <span class="info-value" id="subAutoRenew">
+                  <span class="badge-success">Enabled</span>
+                </span>
+              </div>
+            </div>
+            <div id="noSubscriptionMsg" class="info-empty">
+              <i class="fas fa-info-circle"></i>
+              <p>You're on the Free plan. <a href="sub.html">Upgrade here</a> to unlock more features.</p>
+            </div>
+            <div id="cancelRenewalSection"></div>
+          </div>
+        </div>
+
+        <!-- Rehablix Partners Card -->
+        <div class="settings-card" id="partnerCard" style="display:none;">
+          <div class="card-header">
+            <i class="fas fa-hand-holding-usd"></i>
+            <h3>Rehablix Partners</h3>
+          </div>
+          <div class="card-body">
+            <div id="partnerCardBody">
+              <p class="settings-loading-text">Loading…</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Center / Organization Card -->
+        <div class="settings-card wide-card" id="centerCard">
+          <div class="card-header">
+            <i class="fas fa-hospital"></i>
+            <h3>Center / Organization</h3>
+          </div>
+          <div class="card-body" id="centerCardBody">
+            <!-- Populated dynamically by js/sets.js based on account type -->
+            <p class="settings-loading-text">Loading…</p>
+          </div>
+        </div>
+
+        <!-- Preferences Card -->
+        <div class="settings-card">
+          <div class="card-header">
+            <i class="fas fa-palette"></i>
+            <h3>Appearance</h3>
+          </div>
+          <div class="card-body">
+            <label class="settings-label">Theme Preference</label>
+            <div class="theme-options">
+              <button class="theme-option" data-theme="light">
+                <i class="fas fa-sun"></i> Light
+              </button>
+              <button class="theme-option" data-theme="dark">
+                <i class="fas fa-moon"></i> Dark
+              </button>
+              <button class="theme-option" data-theme="system">
+                <i class="fas fa-desktop"></i> Auto
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notifications Card -->
+        <div class="settings-card">
+          <div class="card-header">
+            <i class="fas fa-bell"></i>
+            <h3>Notifications</h3>
+          </div>
+          <div class="card-body">
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <span class="toggle-label">Email Notifications</span>
+                <span class="toggle-desc">Receive updates about your subscription and new features</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="notifToggle">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <button class="btn-settings-primary" id="savePrefsBtn" style="margin-top: 1rem; width: 100%;">
+              <i class="fas fa-check"></i> Save Preferences
+            </button>
+          </div>
+        </div>
+
+        <!-- Danger Zone Card -->
+        <div class="settings-card danger-card">
+          <div class="card-header">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>Danger Zone</h3>
+          </div>
+          <div class="card-body">
+            <p class="danger-warning">Permanently delete your account and all associated data.</p>
+            <button class="btn-danger" id="deleteAccountBtn">
+              <i class="fas fa-trash-alt"></i> Delete Account
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <p>© rehablix — Clinical co‑pilot for rehab professionals</p>
+  </footer>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <!-- Confirmation Modal -->
+  <div id="confirmModal" class="modal">
+    <div class="modal-content confirm-modal-content">
+      <button class="modal-close" id="closeConfirmModal">&times;</button>
+      <div class="confirm-icon">
+        <i class="fas fa-exclamation-triangle"></i>
+      </div>
+      <h3 id="confirmTitle">Confirm Action</h3>
+      <p id="confirmMessage">Are you sure you want to proceed?</p>
+      <div class="confirm-actions">
+        <button class="btn-secondary" id="confirmCancelBtn">Cancel</button>
+        <button class="btn-danger" id="confirmProceedBtn">Yes, Proceed</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/config.js" defer></script>
+  <script src="js/modal.js" defer></script>
+  <script src="js/center.js" defer></script>
+  <script src="js/invite-modal.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/tools.js" defer></script>
+  <script src="js/sets.js" defer></script>
+</body>
+</html>

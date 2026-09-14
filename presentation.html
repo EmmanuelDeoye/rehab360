@@ -1,0 +1,460 @@
+<!-- presentation.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>  
+  <!-- Inline script to set theme before paint -->
+  <script>
+    (function() {
+      var stored = localStorage.getItem('rehab-theme');
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (stored === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else if (stored === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+      } else {
+        // No preference saved or set to "system" → follow device setting
+        document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+      }
+    })();
+  </script>
+  <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5, user-scalable=yes">
+    <title>rehablix · Clinical Documentation & Presentation</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js" defer></script>
+    <!-- Marked for rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+    <!-- docx for Word export -->
+    <script src="https://unpkg.com/docx@7.8.2/build/index.js" defer></script>
+    <!-- html2pdf for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/presentation.css">
+  <link rel="stylesheet" href="css/invite-modal.css">
+
+  <!-- ------------------------------------------------------------------
+       Embed mode (Phase 5, Lixa inline invocation) — added, not rewritten.
+       When loaded inside Lixa's inline result frame (?embed=1), this page
+       hides its own navbar (Lixa's shell already provides navigation) so
+       the tool reads as an inline result card instead of a full separate
+       page. Nothing else about this page's own JS changes. Same pattern
+       as standardized.html/format.html.
+       ------------------------------------------------------------------ -->
+  <style>
+    html.embed-mode body { background: transparent; }
+    html.embed-mode .navbar { display: none; }
+    html.embed-mode main { padding-top: 0.75rem !important; }
+  </style>
+  <script>
+    (function () {
+      if (new URLSearchParams(window.location.search).get('embed') === '1') {
+        document.documentElement.classList.add('embed-mode');
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="css/error-reporter.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-left">
+                <span class="logo-icon" aria-hidden="true"></span>
+                <div class="logo-text">
+                    <span class="logo-lop">rehablix</span>
+                    <span class="logo-full">doc. & presentation</span>
+                </div>
+            </div>
+            <div class="nav-right">
+                <a href="index.html" class="icon-btn home-icon" aria-label="Home">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M3 9L12 3L21 9L21 20H15V14H9V20H3V9Z" stroke="currentColor" fill="none"/>
+                    </svg>
+                </a>
+                <button class="icon-btn history-nav-btn" id="historyNavBtn" aria-label="History" style="display:none;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M12 8V12L15 15M12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21Z" stroke="currentColor" fill="none"/>
+                    </svg>
+                </button>
+                <button class="icon-btn theme-toggle" id="themeToggle" aria-label="theme mode">
+                    <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="presentation-main">
+        <div class="container">
+            <!-- Mode Switcher Tabs -->
+            <div class="mode-tabs">
+                <button class="mode-tab active" data-mode="presentation">
+                    <i class="fas fa-user-md"></i>
+                    <span>Case Presentation</span>
+                </button>
+                <button class="mode-tab" data-mode="report">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Report</span>
+                </button>
+                <button class="mode-tab" data-mode="documentation">
+                    <i class="fas fa-file-medical-alt"></i>
+                    <span>Documentation</span>
+                </button>
+            </div>
+
+            <div class="workspace-grid">
+                <!-- LEFT: Always-visible text area + multi-file attachments -->
+                <div class="glass-card input-area">
+                    <!-- Clinical notes -->
+                    <div class="input-header">
+                        <i class="fas fa-paste"></i>
+                        <h3>Clinical Notes &amp; Files</h3>
+                    </div>
+                    <textarea id="textInput" rows="12" placeholder="Paste patient notes, assessment findings, or any relevant text..."></textarea>
+                    <div class="input-footer">
+                        <span id="textWordCount">0 words</span>
+                        <button class="clear-btn" id="clearTextBtn"><i class="fas fa-eraser"></i> Clear</button>
+                    </div>
+
+                    <!-- Multi‑file drop zone -->
+                    <div class="drop-zone" id="multiDropZone">
+                        <div class="drop-content">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <h4>Attach Files</h4>
+                            <p>Tap or drag &amp; drop to add documents and images</p>
+                        </div>
+                    </div>
+
+                    <!-- Hidden file inputs -->
+                    <input type="file" id="multiFileInput" accept=".pdf,.doc,.docx,.txt,image/*" multiple hidden>
+                    <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden>
+
+                    <!-- Attachment list -->
+                    <div class="attachments-list" id="attachmentsList" style="display: none;"></div>
+                </div>
+
+                <!-- RIGHT: Patient info & mode-dependent settings -->
+                <div class="glass-card config-area">
+                    <h3><i class="fas fa-user-circle"></i> Patient Information</h3>
+                    <div class="patient-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Full Name</label>
+                                <input type="text" id="patientName" placeholder="John Doe">
+                            </div>
+                            <div class="form-group">
+                                <label>Age</label>
+                                <input type="number" id="patientAge" placeholder="65">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Gender</label>
+                                <select id="patientGender">
+                                    <option value="">Select</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>MRN / ID</label>
+                                <input type="text" id="patientMRN" placeholder="Optional">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Diagnosis / Primary Condition</label>
+                            <input type="text" id="patientDiagnosis" placeholder="e.g., Stroke, Hip Fracture">
+                        </div>
+                        <div class="form-group">
+                            <label>Your Profession</label>
+                            <select id="professionSelect">
+                                <option value="">-- Select your role --</option>
+                                <option value="Occupational Therapist">Occupational Therapist</option>
+                                <option value="Physiotherapist">Physiotherapist</option>
+                                <option value="Speech Therapist">Speech Therapist</option>
+                                <option value="Psychologist">Psychologist</option>
+                                <option value="Nurse">Nurse</option>
+                                <option value="Doctor">Doctor</option>
+                                <option value="Social Worker">Social Worker</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- ============================================================
+                         MODE-SPECIFIC SECTIONS
+                         ============================================================ -->
+                    
+                    <!-- 1. CASE PRESENTATION (default) -->
+                    <div class="config-mode-section" data-mode="presentation">
+                        <h3><i class="fas fa-list-alt"></i> Presentation Outline</h3>
+                        <div class="outline-selector">
+                            <label class="outline-option">
+                                <input type="radio" name="outlinePresentation" value="soap" checked>
+                                <span class="outline-name">SOAP Format</span>
+                                <span class="outline-desc">Subjective, Objective, Assessment, Plan</span>
+                            </label>
+                            <label class="outline-option">
+                                <input type="radio" name="outlinePresentation" value="full">
+                                <span class="outline-name">Full Assessment</span>
+                                <span class="outline-desc">History, Examination, Findings, Recommendations</span>
+                            </label>
+                            <label class="outline-option">
+                                <input type="radio" name="outlinePresentation" value="quick">
+                                <span class="outline-name">Quick Update</span>
+                                <span class="outline-desc">Key changes, Current status, Next steps</span>
+                            </label>
+                            <label class="outline-option">
+                                <input type="radio" name="outlinePresentation" value="custom">
+                                <span class="outline-name">Custom Outline</span>
+                                <span class="outline-desc">Describe your structure below</span>
+                            </label>
+                        </div>
+                        <textarea id="customOutlinePresentation" rows="4" placeholder="e.g., 1. Background, 2. Progress, 3. Concerns, 4. Plan" style="display: none;"></textarea>
+                        <div class="outline-hint" id="customOutlineHintPresentation" style="display: none;">
+                            <i class="fas fa-lightbulb"></i>
+                            <span>Number each section on a new line for best results</span>
+                        </div>
+                    </div>
+
+                    <!-- 2. REPORT -->
+                    <div class="config-mode-section" data-mode="report" style="display: none;">
+                        <h3><i class="fas fa-file-alt"></i> Report Structure</h3>
+                        <div class="outline-selector">
+                            <label class="outline-option">
+                                <input type="radio" name="outlineReport" value="progress" checked>
+                                <span class="outline-name">Progress Note</span>
+                                <span class="outline-desc">Interval history, current status, plan</span>
+                            </label>
+                            <label class="outline-option">
+                                <input type="radio" name="outlineReport" value="discharge">
+                                <span class="outline-name">Discharge Summary</span>
+                                <span class="outline-desc">Course, outcomes, follow‑up</span>
+                            </label>
+                            <label class="outline-option">
+                                <input type="radio" name="outlineReport" value="consult">
+                                <span class="outline-name">Consultation Note</span>
+                                <span class="outline-desc">Reason for consult, findings, recommendations</span>
+                            </label>
+                            <label class="outline-option">
+                                <input type="radio" name="outlineReport" value="custom">
+                                <span class="outline-name">Custom Report</span>
+                                <span class="outline-desc">Define your own structure</span>
+                            </label>
+                        </div>
+                        <textarea id="customOutlineReport" rows="4" placeholder="e.g., 1. Summary, 2. Findings, 3. Recommendations" style="display: none;"></textarea>
+                        <div class="outline-hint" id="customOutlineHintReport" style="display: none;">
+                            <i class="fas fa-lightbulb"></i>
+                            <span>Number each section on a new line for best results</span>
+                        </div>
+                    </div>
+
+                    <!-- 3. DOCUMENTATION -->
+                    <div class="config-mode-section" data-mode="documentation" style="display: none;">
+                        <h3><i class="fas fa-notes-medical"></i> Documentation Template</h3>
+                        <div class="outline-selector">
+                            <label class="outline-option">
+                                <input type="radio" name="outlineDocumentation" value="soap" checked>
+                                <span class="outline-name">SOAP Note</span>
+                                <span class="outline-desc">Subjective, Objective, Assessment, Plan</span>
+                            </label>
+                            <label class="outline-option">
+                                <input type="radio" name="outlineDocumentation" value="admission">
+                                <span class="outline-name">Admission Note</span>
+                                <span class="outline-desc">HPI, Exam, Impression, Plan</span>
+                            </label>
+                            <label class="outline-option">
+                                <input type="radio" name="outlineDocumentation" value="daily">
+                                <span class="outline-name">Daily Progress</span>
+                                <span class="outline-desc">Events, Vitals, Exam, Plan</span>
+                            </label>
+                            <label class="outline-option">
+                                <input type="radio" name="outlineDocumentation" value="custom">
+                                <span class="outline-name">Custom Note</span>
+                                <span class="outline-desc">Describe your structure below</span>
+                            </label>
+                        </div>
+                        <textarea id="customOutlineDocumentation" rows="4" placeholder="e.g., 1. History, 2. Exam, 3. Plan" style="display: none;"></textarea>
+                        <div class="outline-hint" id="customOutlineHintDocumentation" style="display: none;">
+                            <i class="fas fa-lightbulb"></i>
+                            <span>Number each section on a new line for best results</span>
+                        </div>
+                    </div>
+
+                    <!-- COMMON: Additional Instructions -->
+                    <div class="form-group">
+                        <label>Additional Instructions (optional)</label>
+                        <div class="suggested-instructions">
+                            <div class="suggestion-chips" id="suggestionChips">
+                                <button type="button" class="suggestion-chip" data-text="Focus on mobility and transfers">Focus on mobility</button>
+                                <button type="button" class="suggestion-chip" data-text="Emphasize cognitive and communication aspects">Cognition &amp; communication</button>
+                                <button type="button" class="suggestion-chip" data-text="Include psychosocial considerations">Psychosocial factors</button>
+                                <button type="button" class="suggestion-chip" data-text="Highlight safety risks and precautions">Safety &amp; risks</button>
+                                <button type="button" class="suggestion-chip" data-text="Provide specific outcome measures">Outcome measures</button>
+                                <button type="button" class="suggestion-chip" data-text="Focus on discharge planning">Discharge planning</button>
+                            </div>
+                        </div>
+                        <textarea id="additionalInstructions" rows="4" placeholder="Focus on mobility, cognition, etc."></textarea>
+                    </div>
+                    
+                    <!-- NEW: Content Fidelity control -->
+<div class="form-group" style="margin-bottom: 1.5rem;">
+    <label style="margin-bottom: 0.6rem;">Content Fidelity</label>
+    <div class="size-options" style="flex-direction: column; gap: 0.5rem;">
+        <label class="size-option" style="padding: 0.6rem 1rem; border-radius: 0.75rem;">
+            <input type="radio" name="contentFidelity" value="strict" checked>
+            <span><strong>Strict</strong> – Use only provided information, no fabrications</span>
+        </label>
+        <label class="size-option" style="padding: 0.6rem 1rem; border-radius: 0.75rem;">
+            <input type="radio" name="contentFidelity" value="flexible">
+            <span><strong>Flexible</strong> – Allow AI to add plausible clinical details (use with caution)</span>
+        </label>
+    </div>
+</div>
+
+                    <!-- COMMON: Output Detail Level -->
+                    <div class="output-size-selector">
+                        <label>Output Detail Level</label>
+                        <div class="size-options">
+                            <label class="size-option">
+                                <input type="radio" name="outputSize" value="3500">
+                                <span>Minimal</span>
+                            </label>
+                            <label class="size-option">
+                                <input type="radio" name="outputSize" value="5000">
+                                <span>Moderate</span>
+                            </label>
+                            <label class="size-option">
+                                <input type="radio" name="outputSize" value="8000" checked>
+                                <span>Detailed</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button id="generateBtn" class="generate-btn" disabled>
+                        <i class="fas fa-magic"></i> <span id="generateBtnText">Generate Presentation</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Upload Options Modal -->
+            <div class="upload-modal" id="uploadModal">
+                <div class="upload-modal-overlay"></div>
+                <div class="upload-modal-card">
+                    <div class="upload-modal-header">
+                        <h3>Add Attachment</h3>
+                        <button class="upload-modal-close" id="closeUploadModal">&times;</button>
+                    </div>
+                    <div class="upload-modal-body">
+                        <div class="upload-options-grid">
+                            <button class="upload-option" data-action="camera">
+                                <div class="upload-option-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                                        <circle cx="12" cy="13" r="4"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <span class="upload-option-label">Camera</span>
+                                    <span class="upload-option-desc">Take a photo now</span>
+                                </div>
+                            </button>
+                            
+                            <button class="upload-option" data-action="photo">
+                                <div class="upload-option-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                                        <polyline points="21 15 16 10 5 21"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <span class="upload-option-label">Photo</span>
+                                    <span class="upload-option-desc">Choose from gallery</span>
+                                </div>
+                            </button>
+                            
+                            <button class="upload-option" data-action="document">
+                                <div class="upload-option-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                        <polyline points="14 2 14 8 20 8"/>
+                                        <line x1="16" y1="13" x2="8" y2="13"/>
+                                        <line x1="16" y1="17" x2="8" y2="17"/>
+                                        <polyline points="10 9 9 9 8 9"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <span class="upload-option-label">Document</span>
+                                    <span class="upload-option-desc">PDF, DOCX, TXT files</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hidden field for current history ID -->
+            <input type="hidden" id="currentHistoryId">
+        </div>
+    </main>
+    
+    <footer class="site-footer">
+    <p>© rehablix — Clinical co‑pilot for rehab professionals</p>
+  </footer>
+
+    <!-- History Drawer with Search -->
+    <aside class="history-drawer" id="historyDrawer">
+        <div class="drawer-header">
+            <h3><i class='bx bx-time-five'></i> Document History</h3>
+            <button id="closeDrawerBtn" class="drawer-close-btn" aria-label="Close history"><i class='bx bx-x'></i></button>
+        </div>
+        <div class="history-search">
+            <i class="fas fa-search"></i>
+            <input type="text" id="historySearchInput" placeholder="Search by patient name...">
+        </div>
+        <div class="history-content" id="historyList">
+            <div class="empty-state">
+                <i class='bx bx-folder-open'></i>
+                <p>No history found</p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="js/config.js" defer></script>
+    <script src="js/plan.js" defer></script>
+    <script src="js/modal.js" defer></script>
+    <script src="js/center.js" defer></script>
+  <script src="js/invite-modal.js" defer></script>
+  <script src="js/auth.js" defer></script>
+    <script src="js/theme.js" defer></script>
+    <script src="js/tools.js" defer></script>
+    <script src="js/handoff.js" defer></script>
+    <script src="js/error-reporter.js" defer></script>
+    <script src="js/presentation.js" defer></script>
+    <script>
+      // Bring over anything the user shared with Ask AI (feature 7)
+      document.addEventListener('DOMContentLoaded', () => {
+        if (!window.RehablixHandoff) return;
+        const data = window.RehablixHandoff.consume('presentation.html');
+        if (!data) return;
+        window.RehablixHandoff.applyTo(data, { textFieldId: 'textInput', fileFieldId: 'multiFileInput' });
+      });
+    </script>
+</body>
+</html>

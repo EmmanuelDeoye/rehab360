@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>rehablix</title>
+  <script>
+    // GitHub Pages serves this file for any URL that doesn't match a real
+    // file — which is how a "pretty" center link like rehablix.com/rehabverve
+    // gets here. If the path looks like a plausible center slug, send the
+    // visitor on to join.html to resolve it. Anything else just goes home.
+    (function () {
+      var path = window.location.pathname.replace(/^\/+|\/+$/g, ''); // trim slashes
+      var slugPattern = /^[a-z0-9](?:[a-z0-9-]{1,28}[a-z0-9])?$/;
+
+      if (path && !path.includes('/') && !path.includes('.') && slugPattern.test(path.toLowerCase())) {
+        window.location.replace('/join.html?c=' + encodeURIComponent(path.toLowerCase()) + window.location.search.replace(/^\?/, '&'));
+      } else {
+        window.location.replace('/index.html');
+      }
+    })();
+  </script>
+</head>
+<body>
+  <p>Redirecting…</p>
+</body>
+</html>

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    (function() {
+      var stored = localStorage.getItem('rehab-theme');
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (stored === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else if (stored === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+      } else {
+        document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+      }
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5, user-scalable=yes">
+  <title>rehablix · Partners</title>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js" defer></script>
+
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/auth.css">
+  <link rel="stylesheet" href="css/sets.css">
+  <link rel="stylesheet" href="css/partner.css">
+</head>
+<body>
+  <!-- ===== Navbar ===== -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-left">
+        <div class="logo-text">
+          <span class="logo-lop">rehablix</span>
+          <span class="logo-full">partners</span>
+        </div>
+      </div>
+      <div class="nav-right">
+        <a href="index.html" class="icon-btn home-icon" aria-label="Home">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 9L12 3L21 9L21 20H15V14H9V20H3V9Z" stroke="currentColor" fill="none"/>
+          </svg>
+        </a>
+        <button class="icon-btn theme-toggle" id="themeToggle" aria-label="theme mode">
+          <i class="fas fa-moon"></i>
+        </button>
+        <button id="loginBtn" class="btn-login" style="display: none;">Login</button>
+        <div class="profile-dropdown" id="profileDropdown" style="display: none;">
+          <button class="btn-profile" id="profileBtn">
+            <span class="profile-icon" id="profileIcon">👤</span>
+            <span class="profile-name" id="profileName">User</span>
+          </button>
+          <div class="dropdown-menu" id="dropdownMenu">
+            <button class="dropdown-item" id="profileMenuItem"><span>👤</span> My Profile</button>
+            <button class="dropdown-item" id="settingsMenuItem"><span>⚙️</span> Settings</button>
+            <button class="dropdown-item" id="partnerMenuItem" style="display:none;"><span>💰</span> Rehablix Partner</button>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item" id="logoutMenuItem"><span>🚪</span> Logout</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="partner-main">
+    <div class="partner-container">
+
+      <!-- Signed-out state -->
+      <div id="partnerLoggedOut" class="partner-hero glass-card" style="display:none;">
+        <div class="partner-hero-icon">💰</div>
+        <h1>Earn with rehablix</h1>
+        <p>Log in or create a free rehablix account to apply for the Rehablix Partners program.</p>
+        <button class="btn-settings-primary" id="partnerLoginPromptBtn">Log In / Sign Up</button>
+      </div>
+
+      <!-- Loading -->
+      <div id="partnerLoading" class="partner-hero glass-card">
+        <div class="loading-spinner"></div>
+        <p>Loading your partner status…</p>
+      </div>
+
+      <!-- STATE: not yet applied -->
+      <div id="partnerStateNone" class="partner-content" style="display:none;">
+        <div class="partner-hero glass-card">
+          <div class="partner-hero-icon">🚀</div>
+          <h1>Become a Rehablix Partner</h1>
+          <p>Share your personalized link with fellow clinicians and students. Every time someone you refer
+             subscribes to Student or Pro, you earn <strong>20% of their payment</strong> — for every renewal, automatically.</p>
+        </div>
+
+        <div class="partner-benefits glass-card">
+          <div class="partner-benefit"><span class="pb-icon">🔗</span><div><h4>Your own link</h4><p>A unique referral link tied to your account.</p></div></div>
+          <div class="partner-benefit"><span class="pb-icon">💵</span><div><h4>20% commission</h4><p>On every subscription payment your referrals make.</p></div></div>
+          <div class="partner-benefit"><span class="pb-icon">📊</span><div><h4>Live dashboard</h4><p>Track referrals and earnings in real time.</p></div></div>
+        </div>
+
+        <form id="partnerApplyForm" class="settings-card partner-apply-form">
+          <div class="card-header"><i class="fas fa-pen"></i><h3>Apply Now</h3></div>
+          <div class="card-body">
+            <div class="form-group">
+              <label for="partnerFullName">Full Name</label>
+              <input type="text" id="partnerFullName" required placeholder="Your name">
+            </div>
+            <div class="form-group">
+              <label for="partnerAudience">How will you share rehablix?</label>
+              <select id="partnerAudience" required>
+                <option value="">Select an option</option>
+                <option value="social">Social media / content</option>
+                <option value="colleagues">Colleagues & professional network</option>
+                <option value="students">Students / classmates</option>
+                <option value="center">My clinic / center</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="partnerPayoutMethod">Payout Method</label>
+              <select id="partnerPayoutMethod" required>
+                <option value="">Select an option</option>
+                <option value="bank">Bank Transfer</option>
+                <option value="paypal">PayPal</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="partnerPayoutDetails">Payout Details</label>
+              <input type="text" id="partnerPayoutDetails" required placeholder="Bank name + account number, or PayPal email">
+              <small class="form-hint">Only used to pay out your commissions. Reviewed by an admin before approval.</small>
+            </div>
+            <div class="form-group">
+              <label for="partnerNote">Anything else we should know? (optional)</label>
+              <textarea id="partnerNote" rows="3" placeholder="e.g. link to your platform/following"></textarea>
+            </div>
+            <div id="partnerApplyError" class="error-message"></div>
+            <button type="submit" class="auth-btn" id="partnerApplyBtn">Submit Application</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- STATE: pending review -->
+      <div id="partnerStatePending" class="partner-hero glass-card" style="display:none;">
+        <div class="partner-hero-icon">⏳</div>
+        <h1>Application Under Review</h1>
+        <p>Thanks for applying! Our team is reviewing your Rehablix Partners application. You'll get an email
+           as soon as a decision is made — usually within a few business days.</p>
+      </div>
+
+      <!-- STATE: rejected -->
+      <div id="partnerStateRejected" class="partner-hero glass-card" style="display:none;">
+        <div class="partner-hero-icon">😕</div>
+        <h1>Application Not Approved</h1>
+        <p id="partnerRejectionReason">Unfortunately your Rehablix Partners application wasn't approved this time.</p>
+        <button class="btn-settings-primary" id="partnerReapplyBtn">Apply Again</button>
+      </div>
+
+      <!-- STATE: approved (dashboard) -->
+      <div id="partnerStateApproved" class="partner-content" style="display:none;">
+        <div class="partner-dash-header">
+          <h1>Your Partner Dashboard</h1>
+          <p class="view-subtitle">Share your link. Earn 20% on every payment your referrals make.</p>
+        </div>
+
+        <div class="partner-link-card glass-card">
+          <label>Your referral link</label>
+          <div class="partner-link-row">
+            <input type="text" id="partnerLinkInput" readonly>
+            <button class="btn-settings-primary" id="copyPartnerLinkBtn"><i class="fas fa-copy"></i> Copy</button>
+          </div>
+        </div>
+
+        <div class="partner-stats-grid">
+          <div class="partner-stat glass-card">
+            <span class="ps-label">Total Earned</span>
+            <span class="ps-value" id="statEarningsTotal">—</span>
+          </div>
+          <div class="partner-stat glass-card">
+            <span class="ps-label">Pending Payout</span>
+            <span class="ps-value" id="statEarningsPending">—</span>
+          </div>
+          <div class="partner-stat glass-card">
+            <span class="ps-label">Referred Users</span>
+            <span class="ps-value" id="statReferralsCount">0</span>
+          </div>
+          <div class="partner-stat glass-card">
+            <span class="ps-label">Paid Conversions</span>
+            <span class="ps-value" id="statConversionsCount">0</span>
+          </div>
+        </div>
+
+        <div class="settings-card wide-card">
+          <div class="card-header"><i class="fas fa-users"></i><h3>Your Referrals</h3></div>
+          <div class="card-body">
+            <div class="table-container">
+              <div class="table-scroll">
+                <table class="partner-table">
+                  <thead><tr><th>Name</th><th>Joined</th></tr></thead>
+                  <tbody id="referralsTableBody"></tbody>
+                </table>
+              </div>
+              <div id="referralsEmpty" class="info-empty"><i class="fas fa-info-circle"></i><p>No referrals yet — start sharing your link!</p></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-card wide-card">
+          <div class="card-header"><i class="fas fa-receipt"></i><h3>Commission History</h3></div>
+          <div class="card-body">
+            <div class="table-container">
+              <div class="table-scroll">
+                <table class="partner-table">
+                  <thead><tr><th>Referred User</th><th>Plan</th><th>Amount</th><th>Your Commission</th><th>Date</th></tr></thead>
+                  <tbody id="transactionsTableBody"></tbody>
+                </table>
+              </div>
+              <div id="transactionsEmpty" class="info-empty"><i class="fas fa-info-circle"></i><p>No commissions yet.</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>© rehablix — Clinical co‑pilot for rehab professionals</p>
+  </footer>
+
+  <div id="toast-container"></div>
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- Scripts -->
+  <script src="js/config.js" defer></script>
+  <script src="js/modal.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/partner.js" defer></script>
+</body>
+</html>

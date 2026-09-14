@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5" />
+
+    <title>rehablix · Admin</title>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js" defer>
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js" defer>
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js" defer>
+    </script>
+
+    <!-- Chart.js for visit statistics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer>
+    </script>
+
+    <!-- EmailJS: sends partner approval/rejection emails client-side since
+         this site has no backend. See js/admin.js EMAILJS_CONFIG for setup. -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js" defer>
+    </script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/admin.css" />
+    <link rel="stylesheet" href="css/main.css" />
+
+    <style>
+        /* quick overrides so the admin page uses its own CSS */
+        body.admin-page {
+            background: var(--bg-page);
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+        /* ensure glass card styles are available */
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-light);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.25s ease;
+        }
+        .glass-card:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        /* Three-dot menu button */
+        .action-menu-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            padding: 0.2rem 0.5rem;
+            cursor: pointer;
+            border-radius: 0.4rem;
+            transition: all 0.2s ease;
+            line-height: 1;
+        }
+        .action-menu-btn:hover {
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
+
+        .action-menu-btn.active {
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
+
+        /* Dropdown menu for actions */
+        .action-dropdown {
+            position: absolute;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-light);
+            border-radius: 0.8rem;
+            box-shadow: var(--shadow-hover);
+            min-width: 160px;
+            padding: 0.3rem;
+            z-index: 50;
+            display: none;
+            animation: dropdownFade 0.2s ease;
+            right: 0;
+            top: 100%;
+            margin-top: 0.3rem;
+        }
+
+        .action-dropdown.show {
+            display: block;
+        }
+
+        .action-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.5rem 0.8rem;
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            background: transparent;
+            border: none;
+            width: 100%;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-family: inherit;
+            transition: all 0.15s ease;
+            text-align: left;
+        }
+
+        .action-dropdown-item:hover {
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
+
+        .action-dropdown-item.danger:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .action-dropdown-item .action-icon {
+            font-size: 1rem;
+            width: 1.4rem;
+            text-align: center;
+        }
+
+        .action-dropdown-item .action-label {
+            font-size: 0.85rem;
+        }
+
+        /* Simplified table */
+        #userTable th:last-child {
+            text-align: center;
+            width: 60px;
+        }
+
+        #userTable td:last-child {
+            text-align: center;
+            position: relative;
+        }
+
+        .table-cell-actions {
+            position: relative;
+            display: inline-block;
+        }
+
+        /* Access list styling */
+        .access-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin: 0.8rem 0;
+        }
+
+        .access-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.4rem 0.8rem;
+            background: var(--surface);
+            border-radius: 0.6rem;
+            border: 1px solid var(--border-light);
+        }
+
+        .access-item .email {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        .access-item .remove-access {
+            background: transparent;
+            border: none;
+            color: #dc2626;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.1rem 0.4rem;
+            border-radius: 0.3rem;
+            transition: all 0.15s ease;
+        }
+
+        .access-item .remove-access:hover {
+            background: #fee2e2;
+        }
+
+        .add-access-form {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .add-access-form input {
+            flex: 1;
+            padding: 0.5rem 0.8rem;
+            border: 1px solid var(--border-light);
+            border-radius: 0.6rem;
+            background: var(--surface);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .add-access-form input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+
+        .add-access-form button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.6rem;
+            background: var(--accent);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .add-access-form button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 150, 136, 0.3);
+        }
+
+        .access-msg {
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .access-msg.success {
+            color: #059669;
+        }
+        .access-msg.error {
+            color: #dc2626;
+        }
+
+        /* Admin badge on user row */
+        .badge-admin {
+            display: inline-block;
+            padding: 0.1rem 0.5rem;
+            border-radius: 2rem;
+            font-size: 0.6rem;
+            font-weight: 700;
+            background: #dbeafe;
+            color: #1d4ed8;
+            margin-left: 0.3rem;
+        }
+
+        @keyframes dropdownFade {
+            from {
+                opacity: 0;
+                transform: translateY(-8px) scale(0.96);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .action-dropdown {
+                right: auto;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+            .action-dropdown.show {
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* Disabled state for non-master admins */
+        .disabled-setting {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .disabled-setting .add-access-form button {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        /* ==============================================================
+           VISIT STATISTICS CHART
+           ============================================================== */
+        .visit-chart-section {
+            margin-top: 1.5rem;
+        }
+
+        .visit-chart-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            gap: 0.8rem;
+        }
+
+        .visit-chart-header h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .chart-time-buttons {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .chart-time-btn {
+            padding: 0.3rem 0.8rem;
+            border: 1px solid var(--border-light);
+            border-radius: 2rem;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .chart-time-btn:hover {
+            background: var(--accent-soft);
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .chart-time-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+            box-shadow: 0 4px 12px rgba(0, 150, 136, 0.3);
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 220px;
+            width: 100%;
+        }
+
+        @media (max-width: 480px) {
+            .chart-wrapper {
+                height: 180px;
+            }
+            .visit-chart-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .chart-time-buttons {
+                justify-content: center;
+            }
+            .chart-time-btn {
+                font-size: 0.7rem;
+                padding: 0.2rem 0.6rem;
+            }
+        }
+
+        /* Stat card clickable */
+        .stat-card.clickable {
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .stat-card.clickable:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--accent);
+        }
+
+        .stat-card.clickable:active {
+            transform: scale(0.97);
+        }
+    </style>
+</head>
+<body class="admin-page">
+
+    <!-- ============================================================= -->
+    <!--  ADMIN AUTH SCREEN  (pass-based)                              -->
+    <!-- ============================================================= -->
+    <div id="adminAuthScreen" class="admin-auth-overlay">
+        <div class="admin-auth-card glass-card">
+            <div class="auth-card-header">
+                <span class="auth-logo">🛡️</span>
+                <h2>Admin Access</h2>
+                <p id="authStatusMsg">Enter the admin password to continue.</p>
+            </div>
+
+            <!-- Setup form (no password set yet) -->
+            <div id="setupForm" style="display:none;">
+                <p class="setup-hint">No admin password found. Create one now.</p>
+                <div class="auth-input-group">
+                    <input type="password" id="setupPassword" placeholder="New password" />
+                    <input type="password" id="setupPasswordConfirm" placeholder="Confirm password" />
+                </div>
+                <button id="setupBtn" class="admin-btn primary">Set Password</button>
+                <div id="setupError" class="auth-error"></div>
+            </div>
+
+            <!-- Login form -->
+            <div id="loginForm" style="display:none;">
+                <div class="auth-input-group">
+                    <input type="password" id="loginPassword" placeholder="Enter password" />
+                </div>
+                <button id="loginBtn" class="admin-btn primary">Unlock Dashboard</button>
+                <div id="loginError" class="auth-error"></div>
+            </div>
+
+            <div class="auth-footer">
+                <span>🔐 secured with Firebase</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================= -->
+    <!--  ADMIN DASHBOARD  (visible after auth)                        -->
+    <!-- ============================================================= -->
+    <div id="adminDashboard" style="display:none;">
+
+        <!-- TOP NAV -->
+        <nav class="admin-navbar">
+            <div class="nav-left">
+                <button id="sidebarToggle" class="icon-btn" aria-label="toggle sidebar">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="6" x2="21" y2="6" />
+                        <line x1="3" y1="12" x2="21" y2="12" />
+                        <line x1="3" y1="18" x2="21" y2="18" />
+                    </svg>
+                </button>
+                <span class="nav-brand">rehablix <span class="nav-brand-sub">admin</span></span>
+            </div>
+            <div class="nav-right">
+                <span id="adminEmailDisplay" style="font-size:0.85rem;color:var(--text-secondary);margin-right:0.5rem; display:none;"></span>
+                <button id="themeToggle" class="icon-btn" aria-label="theme">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="12" r="5" />
+                        <line x1="12" y1="1" x2="12" y2="3" />
+                        <line x1="12" y1="21" x2="12" y2="23" />
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                        <line x1="1" y1="12" x2="3" y2="12" />
+                        <line x1="21" y1="12" x2="23" y2="12" />
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                    </svg>
+                </button>
+                <button id="adminLogoutBtn" class="admin-btn outline small">Logout</button>
+            </div>
+        </nav>
+
+        <!-- SIDEBAR + MAIN -->
+        <div class="admin-layout">
+            <!-- SIDEBAR -->
+            <aside id="adminSidebar" class="admin-sidebar">
+                <nav class="sidebar-nav">
+                    <a href="#" class="sidebar-link active" data-view="dashboard">
+                        <span class="sidebar-icon">📊</span>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="#" class="sidebar-link" data-view="users">
+                        <span class="sidebar-icon">👥</span>
+                        <span>Users</span>
+                        <span id="userCountBadge" class="badge-sidebar">0</span>
+                    </a>
+                    <a href="#" class="sidebar-link" data-view="reviews">
+                        <span class="sidebar-icon">🚩</span>
+                        <span>Reviews</span>
+                        <span id="reviewCountBadge" class="badge-sidebar">0</span>
+                    </a>
+                    <a href="#" class="sidebar-link" data-view="partners">
+                        <span class="sidebar-icon">🤝</span>
+                        <span>Partners</span>
+                        <span id="partnerCountBadge" class="badge-sidebar">0</span>
+                    </a>
+                    <a href="#" class="sidebar-link" data-view="settings">
+                        <span class="sidebar-icon">⚙️</span>
+                        <span>Settings</span>
+                    </a>
+                </nav>
+                <div class="sidebar-footer">
+                    <span class="admin-version">v1.0</span>
+                </div>
+            </aside>
+
+            <!-- MAIN CONTENT -->
+            <main class="admin-main">
+
+                <!-- ======= DASHBOARD VIEW ======= -->
+                <section id="viewDashboard" class="admin-view">
+                    <div class="view-header">
+                        <h1>Dashboard</h1>
+                        <p class="view-subtitle">Overview of platform activity</p>
+                    </div>
+
+                    <!-- Stats cards -->
+                    <div class="stats-grid" id="statsGrid">
+                        <div class="stat-card glass-card clickable" data-target="users" id="statTotalUsersCard">
+                            <div class="stat-icon">👤</div>
+                            <div class="stat-info">
+                                <span class="stat-label">Total Users</span>
+                                <span class="stat-value" id="statTotalUsers">0</span>
+                            </div>
+                        </div>
+                        <div class="stat-card glass-card clickable" data-target="chart" id="statTodayCard">
+                            <div class="stat-icon">📅</div>
+                            <div class="stat-info">
+                                <span class="stat-label">Today</span>
+                                <span class="stat-value" id="statVisitsToday">0</span>
+                            </div>
+                        </div>
+                        <div class="stat-card glass-card clickable" data-target="chart" id="statWeekCard">
+                            <div class="stat-icon">📆</div>
+                            <div class="stat-info">
+                                <span class="stat-label">This Week</span>
+                                <span class="stat-value" id="statVisitsWeek">0</span>
+                            </div>
+                        </div>
+                        <div class="stat-card glass-card clickable" data-target="chart" id="statMonthCard">
+                            <div class="stat-icon">📊</div>
+                            <div class="stat-info">
+                                <span class="stat-label">This Month</span>
+                                <span class="stat-value" id="statVisitsMonth">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick plan breakdown -->
+                    <div class="stats-breakdown glass-card">
+                        <h3>Subscription Plans</h3>
+                        <div class="plan-breakdown" id="planBreakdown">
+                            <span>Free: <strong id="planFreeCount">0</strong></span>
+                            <span>Student: <strong id="planStudentCount">0</strong></span>
+                            <span>Pro: <strong id="planProCount">0</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- Visit Statistics Chart -->
+                    <div class="visit-chart-section glass-card">
+                        <div class="visit-chart-header">
+                            <h3>📈 Visit Statistics</h3>
+                            <div class="chart-time-buttons">
+                                <button class="chart-time-btn active" data-range="today">Today</button>
+                                <button class="chart-time-btn" data-range="7days">Last 7 Days</button>
+                                <button class="chart-time-btn" data-range="30days">Last 30 Days</button>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="visitChart"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ======= USERS VIEW ======= -->
+                <section id="viewUsers" class="admin-view" style="display:none;">
+                    <div class="view-header">
+                        <h1>User Management</h1>
+                        <p class="view-subtitle">Search, filter, and manage all registered users</p>
+                    </div>
+
+                    <!-- Toolbar -->
+                    <div class="users-toolbar glass-card">
+                        <div class="toolbar-row">
+                            <div class="search-wrapper">
+                                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <circle cx="11" cy="11" r="8" />
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                </svg>
+                                <input type="search" id="userSearch" placeholder="Search by name or email…" />
+                            </div>
+                            <div class="toolbar-filters">
+                                <select id="filterSpecialization">
+                                    <option value="">All Departments</option>
+                                </select>
+                                <select id="filterPlan">
+                                    <option value="">All Plans</option>
+                                    <option value="free">Free</option>
+                                    <option value="student">Student</option>
+                                    <option value="pro">Pro</option>
+                                </select>
+                                <select id="filterProvider">
+                                    <option value="">All Providers</option>
+                                    <option value="email">Email</option>
+                                    <option value="google">Google</option>
+                                </select>
+                                <select id="filterAccountType">
+                                    <option value="">All Account Types</option>
+                                    <option value="center">Centers / Organizations</option>
+                                    <option value="individual">Individuals</option>
+                                    <option value="member">Center Members</option>
+                                </select>
+                                <select id="sortUsers">
+                                    <option value="newest">Newest First</option>
+                                    <option value="oldest">Oldest First</option>
+                                    <option value="az">A → Z</option>
+                                    <option value="za">Z → A</option>
+                                </select>
+                            </div>
+                            <button id="refreshUsersBtn" class="admin-btn outline small">⟳ Refresh</button>
+                        </div>
+                    </div>
+
+                    <!-- User table -->
+                    <div class="table-container glass-card">
+                        <div class="table-scroll">
+                            <table id="userTable">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th style="text-align:center;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="userTableBody">
+                                    <!-- dynamically rendered -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="usersEmpty" class="empty-table-state">
+                            <span>🔍</span>
+                            <p>No users match your filters.</p>
+                        </div>
+                        <div id="usersLoading" class="table-loading">
+                            <div class="loading-spinner"></div>
+                            <p>Loading users…</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ======= REVIEWS VIEW ======= -->
+                <section id="viewReviews" class="admin-view" style="display:none;">
+                    <div class="view-header">
+                        <h1>Reviews &amp; Ratings</h1>
+                        <p class="view-subtitle">User star/emoji ratings &amp; feedback, plus API failures reported automatically</p>
+                    </div>
+
+                    <!-- Rating summary -->
+                    <div class="stats-breakdown glass-card" id="ratingSummaryCard">
+                        <h3>Average User Rating</h3>
+                        <div class="plan-breakdown">
+                            <span>Average: <strong id="avgRatingValue">—</strong></span>
+                            <span>Total Ratings: <strong id="totalRatingsCount">0</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- Toolbar -->
+                    <div class="users-toolbar glass-card">
+                        <div class="toolbar-row">
+                            <div class="search-wrapper">
+                                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <circle cx="11" cy="11" r="8" />
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                </svg>
+                                <input type="search" id="reviewSearch" placeholder="Search by tool, context, feedback, or email…" />
+                            </div>
+                            <div class="toolbar-filters">
+                                <select id="filterReviewType">
+                                    <option value="">All Types</option>
+                                    <option value="user_feedback">User Ratings &amp; Feedback</option>
+                                    <option value="insufficient_funds">Insufficient Funds</option>
+                                    <option value="api_error">Other API Error</option>
+                                </select>
+                                <select id="filterReviewTool">
+                                    <option value="">All Tools</option>
+                                </select>
+                                <select id="filterReviewStatus">
+                                    <option value="">All</option>
+                                    <option value="unresolved">Unresolved</option>
+                                    <option value="resolved">Resolved</option>
+                                </select>
+                                <select id="sortReviews">
+                                    <option value="newest">Newest First</option>
+                                    <option value="oldest">Oldest First</option>
+                                </select>
+                            </div>
+                            <button id="refreshReviewsBtn" class="admin-btn outline small">⟳ Refresh</button>
+                        </div>
+                    </div>
+
+                    <!-- Review table -->
+                    <div class="table-container glass-card">
+                        <div class="table-scroll">
+                            <table id="reviewTable">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th style="text-align:center;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reviewTableBody">
+                                    <!-- dynamically rendered -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="reviewsEmpty" class="empty-table-state">
+                            <span>🔍</span>
+                            <p>No reviews match your filters.</p>
+                        </div>
+                        <div id="reviewsLoading" class="table-loading">
+                            <div class="loading-spinner"></div>
+                            <p>Loading reviews…</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ======= PARTNERS VIEW ======= -->
+                <section id="viewPartners" class="admin-view" style="display:none;">
+                    <div class="view-header">
+                        <h1>Rehablix Partners</h1>
+                        <p class="view-subtitle">Review, approve, or disallow affiliate partner applications</p>
+                    </div>
+
+                    <!-- Toolbar -->
+                    <div class="users-toolbar glass-card">
+                        <div class="toolbar-row">
+                            <div class="search-wrapper">
+                                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <circle cx="11" cy="11" r="8" />
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                </svg>
+                                <input type="search" id="partnerSearch" placeholder="Search by name, email, or code…" />
+                            </div>
+                            <div class="toolbar-filters">
+                                <select id="filterPartnerStatus">
+                                    <option value="">All Statuses</option>
+                                    <option value="pending">Pending Review</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+                                <select id="sortPartners">
+                                    <option value="newest">Newest First</option>
+                                    <option value="oldest">Oldest First</option>
+                                    <option value="earnings">Highest Earnings</option>
+                                </select>
+                            </div>
+                            <button id="refreshPartnersBtn" class="admin-btn outline small">⟳ Refresh</button>
+                        </div>
+                    </div>
+
+                    <!-- Partner table -->
+                    <div class="table-container glass-card">
+                        <div class="table-scroll">
+                            <table id="partnerTable">
+                                <thead>
+                                    <tr>
+                                        <th>Partner</th>
+                                        <th style="text-align:center;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="partnerTableBody">
+                                    <!-- dynamically rendered -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="partnersEmpty" class="empty-table-state">
+                            <span>🔍</span>
+                            <p>No partner applications match your filters.</p>
+                        </div>
+                        <div id="partnersLoading" class="table-loading">
+                            <div class="loading-spinner"></div>
+                            <p>Loading partners…</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ======= SETTINGS VIEW ======= -->
+                <section id="viewSettings" class="admin-view" style="display:none;">
+                    <div class="view-header">
+                        <h1>Settings</h1>
+                        <p class="view-subtitle">Admin configuration &amp; access management</p>
+                    </div>
+
+                    <!-- Change Password (only for master admin) -->
+                    <div class="settings-card glass-card" id="changePasswordCard">
+                        <h3>Change Admin Password</h3>
+                        <p class="settings-hint">Update the password used to access this dashboard.</p>
+                        <div class="settings-form">
+                            <input type="password" id="newAdminPass" placeholder="New password" />
+                            <input type="password" id="newAdminPassConfirm" placeholder="Confirm new password" />
+                            <button id="changeAdminPassBtn" class="admin-btn primary">Update Password</button>
+                        </div>
+                        <div id="settingsMsg" class="settings-msg"></div>
+                    </div>
+
+                    <!-- Admin Access Management (only master admin can manage) -->
+                    <div class="settings-card glass-card" id="accessManagementCard">
+                        <h3>Admin Access</h3>
+                        <p class="settings-hint">Manage who has access to the admin dashboard.</p>
+
+                        <div id="accessListContainer">
+                            <div class="access-list" id="accessList">
+                                <!-- Dynamically rendered -->
+                            </div>
+                        </div>
+
+                        <div class="add-access-form" id="addAccessForm">
+                            <input type="email" id="addAccessEmail" placeholder="Enter email to grant access" />
+                            <button id="addAccessBtn">Grant Access</button>
+                        </div>
+                        <div id="accessMsg" class="access-msg"></div>
+                    </div>
+
+                    <!-- Visit Data -->
+                    <div class="settings-card glass-card">
+                        <h3>Visit Tracking</h3>
+                        <p class="settings-hint">Total visits are automatically tracked. Clear all visit data if needed.</p>
+                        <button id="clearVisitsBtn" class="admin-btn danger small">Clear Visit Data</button>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- ============================================================= -->
+    <!--  MODALS                                                       -->
+    <!-- ============================================================= -->
+
+    <!-- User Detail Modal -->
+    <div id="userDetailModal" class="admin-modal">
+        <div class="modal-content glass-card">
+            <div class="modal-header">
+                <h2 id="detailUserName">User Details</h2>
+                <button class="modal-close" data-modal="userDetailModal">&times;</button>
+            </div>
+            <div class="modal-body" id="detailBody">
+                <!-- filled by JS -->
+            </div>
+            <div class="modal-footer">
+                <button class="admin-btn outline small" data-modal="userDetailModal">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Plan Modal -->
+    <div id="changePlanModal" class="admin-modal">
+        <div class="modal-content glass-card">
+            <div class="modal-header">
+                <h2>Change Subscription Plan</h2>
+                <button class="modal-close" data-modal="changePlanModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>User: <strong id="planUserEmail">—</strong></p>
+                <div class="form-group">
+                    <label>New Plan</label>
+                    <select id="newPlanSelect">
+                        <option value="free">Free</option>
+                        <option value="student">Student</option>
+                        <option value="pro">Pro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Expiration Date</label>
+                    <input type="date" id="planExpiryDateInput" />
+                    <small>Leave empty for default (1 year from now).</small>
+                </div>
+                <div id="planChangeMsg" class="form-msg"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="admin-btn outline small" data-modal="changePlanModal">Cancel</button>
+                <button id="confirmPlanChangeBtn" class="admin-btn primary">Confirm Change</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Modal (used for both Users and Reviews) -->
+    <div id="contactModal" class="admin-modal">
+        <div class="modal-content glass-card">
+            <div class="modal-header">
+                <h2 id="contactModalTitle">Contact User</h2>
+                <button class="modal-close" data-modal="contactModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Contacting: <strong id="contactUserEmail">—</strong></p>
+                <div class="form-group">
+                    <label>Phone Number <span class="field-optional">(for WhatsApp — include country code, e.g. +234...)</span></label>
+                    <input type="tel" id="contactPhone" placeholder="+234 801 234 5678" />
+                </div>
+                <div class="form-group">
+                    <label>Subject <span class="field-optional">(email only)</span></label>
+                    <input type="text" id="contactSubject" placeholder="Subject" />
+                </div>
+                <div class="form-group">
+                    <label>Message</label>
+                    <textarea id="contactMessage" rows="4" placeholder="Write your message…"></textarea>
+                </div>
+                <div id="contactMsg" class="form-msg"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="admin-btn outline small" data-modal="contactModal">Cancel</button>
+                <button id="sendWhatsAppBtn" class="admin-btn whatsapp">
+                    <i class="fab fa-whatsapp"></i> WhatsApp
+                </button>
+                <button id="sendContactBtn" class="admin-btn primary">Send Email</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Detail Modal -->
+    <div id="reviewDetailModal" class="admin-modal">
+        <div class="modal-content glass-card">
+            <div class="modal-header">
+                <h2>Review Details</h2>
+                <button class="modal-close" data-modal="reviewDetailModal">&times;</button>
+            </div>
+            <div class="modal-body" id="reviewDetailBody">
+                <!-- filled by JS -->
+            </div>
+            <div class="modal-footer">
+                <button class="admin-btn outline small" data-modal="reviewDetailModal">Close</button>
+                <button id="reviewDetailResolveBtn" class="admin-btn primary">Mark Resolved</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Partner Detail Modal -->
+    <div id="partnerDetailModal" class="admin-modal">
+        <div class="modal-content glass-card">
+            <div class="modal-header">
+                <h2>Partner Application</h2>
+                <button class="modal-close" data-modal="partnerDetailModal">&times;</button>
+            </div>
+            <div class="modal-body" id="partnerDetailBody">
+                <!-- filled by JS -->
+            </div>
+            <div class="modal-footer" id="partnerDetailFooter">
+                <button class="admin-btn outline small" data-modal="partnerDetailModal">Close</button>
+                <button id="partnerRejectBtn" class="admin-btn danger">Reject</button>
+                <button id="partnerApproveBtn" class="admin-btn primary">Approve</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reject Reason Modal -->
+    <div id="rejectReasonModal" class="admin-modal">
+        <div class="modal-content glass-card" style="max-width:420px;">
+            <div class="modal-header">
+                <h2>Reject Application</h2>
+                <button class="modal-close" data-modal="rejectReasonModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="rejectReasonInput">Reason (included in the email to the applicant)</label>
+                    <textarea id="rejectReasonInput" rows="3" placeholder="e.g. We're not able to approve applications without an established audience yet."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="admin-btn outline small" data-modal="rejectReasonModal">Cancel</button>
+                <button id="confirmRejectBtn" class="admin-btn danger">Reject &amp; Notify</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Action Modal (delete / ban) -->
+    <div id="confirmModal" class="admin-modal">
+        <div class="modal-content glass-card" style="max-width:400px;">
+            <div class="modal-header">
+                <h2 id="confirmTitle">Confirm Action</h2>
+                <button class="modal-close" data-modal="confirmModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">Are you sure?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="admin-btn outline small" data-modal="confirmModal">Cancel</button>
+                <button id="confirmActionBtn" class="admin-btn danger">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="adminToast" class="admin-toast hidden"></div>
+
+    <!-- ============================================================= -->
+    <!--  SCRIPTS                                                      -->
+    <!-- ============================================================= -->
+    <script src="js/config.js" defer></script>
+    <script src="js/admin.js" defer></script>
+
+</body>
+</html>

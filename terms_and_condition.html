@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>rehablix · Terms of Service & Privacy</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: #f5f7fb;
+      color: #1a2a3a;
+      line-height: 1.6;
+    }
+
+    .legal-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    /* Header */
+    .legal-header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 2px solid #e0e8f0;
+    }
+
+    .legal-header h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #009688;
+      margin-bottom: 0.5rem;
+    }
+
+    .legal-header .effective-date {
+      color: #6b7a8a;
+      font-size: 0.9rem;
+    }
+
+    .legal-header .tagline {
+      margin-top: 0.75rem;
+      font-style: italic;
+      color: #4a5a6a;
+    }
+
+    /* Navigation Tabs */
+    .legal-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid #e0e8f0;
+      padding-bottom: 0.5rem;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #6b7a8a;
+      cursor: pointer;
+      border-radius: 2rem;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      background: #e8f0f5;
+      color: #009688;
+    }
+
+    .tab-btn.active {
+      background: #009688;
+      color: white;
+    }
+
+    /* Content Sections */
+    .legal-section {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .legal-section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Typography */
+    h2 {
+      color: #009688;
+      font-size: 1.5rem;
+      margin: 1.5rem 0 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #e0e8f0;
+    }
+
+    h3 {
+      color: #2c3e50;
+      font-size: 1.2rem;
+      margin: 1.25rem 0 0.75rem;
+    }
+
+    p {
+      margin-bottom: 1rem;
+      color: #2c3e50;
+    }
+
+    .legal-card {
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+      margin-bottom: 1.5rem;
+    }
+
+    ul, ol {
+      margin: 0.75rem 0 1rem 1.75rem;
+    }
+
+    li {
+      margin: 0.5rem 0;
+    }
+
+    .highlight-box {
+      background: #f0f9f6;
+      border-left: 4px solid #009688;
+      padding: 1rem 1.25rem;
+      border-radius: 0.75rem;
+      margin: 1.25rem 0;
+    }
+
+    .gentle-note {
+      background: #fff8e7;
+      border-left: 4px solid #f5a623;
+      padding: 1rem 1.25rem;
+      border-radius: 0.75rem;
+      margin: 1.25rem 0;
+      font-size: 0.95rem;
+    }
+
+    .gentle-note i {
+      font-style: normal;
+      font-weight: 600;
+      color: #d48400;
+    }
+
+    hr {
+      margin: 2rem 0;
+      border: none;
+      border-top: 1px solid #e0e8f0;
+    }
+
+    .back-home {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #009688;
+      color: white;
+      text-decoration: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 2rem;
+      font-weight: 500;
+      transition: all 0.2s;
+      margin-top: 2rem;
+    }
+
+    .back-home:hover {
+      background: #00796b;
+      transform: translateY(-2px);
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid #e0e8f0;
+      color: #8a9aaa;
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 640px) {
+      .legal-card { padding: 1.25rem; }
+      h1 { font-size: 1.6rem; }
+      .tab-btn { padding: 0.5rem 1rem; font-size: 0.85rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="legal-container">
+  <div class="legal-header">
+    <h1>rehablix · Terms of Service</h1>
+    <div class="effective-date">Effective Date: June 8, 2026</div>
+    <div class="tagline">⚕️ Built with care for healthcare professionals & students</div>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="legal-tabs">
+    <button class="tab-btn active" data-tab="terms">📋 Terms of Service</button>
+    <button class="tab-btn" data-tab="privacy">🔒 Privacy Policy</button>
+    <button class="tab-btn" data-tab="subscription">💳 Subscription Terms</button>
+    <button class="tab-btn" data-tab="disclaimer">⚖️ Disclaimer</button>
+  </div>
+
+  <!-- ==================== TERMS OF SERVICE ==================== -->
+  <div id="terms" class="legal-section active">
+    <div class="legal-card">
+      <h2>1. Welcome to rehablix</h2>
+      <p>Thank you for choosing rehablix — a clinical co-pilot designed to support rehabilitation professionals and students in their educational and clinical journey. By accessing or using our platform, you agree to be bound by these Terms of Service. We've written them in plain language because we believe transparency builds trust.</p>
+      
+      <div class="gentle-note">
+        <i>📖 A quick note:</i> These terms are here to protect both you and us. They help ensure a safe, respectful, and reliable environment for everyone. Please take a moment to read them — we're always here to answer any questions.
+      </div>
+
+      <h2>2. Who Can Use rehablix</h2>
+      <p>rehablix is intended for:</p>
+      <ul>
+        <li>Healthcare students (physiotherapy, occupational therapy, speech therapy, psychology, and related fields)</li>
+        <li>Licensed healthcare professionals and clinicians</li>
+        <li>Educational institutions and training programs</li>
+      </ul>
+      <p>You must be at least 18 years old or have parental consent to use our services. By registering, you confirm that the information you provide is accurate and complete.</p>
+
+      <h2>3. Your Account Responsibilities</h2>
+      <p>You are the guardian of your account. Please keep your login credentials confidential. You are responsible for all activity that occurs under your account. If you notice any unauthorized access, please notify us immediately at <strong>support@rehablix.com</strong> — we'll act promptly to help secure your account.</p>
+
+      <h2>4. Our Services & Your Rights</h2>
+      <p>rehablix provides AI-assisted tools for assignment generation, range of motion (ROM) analysis, gait analysis, documentation, and clinical education support. We grant you a personal, non-exclusive, non-transferable license to use our platform according to your subscription plan.</p>
+      <p>You retain ownership of all content you create (assignments, analyses, notes). We do not claim ownership over your intellectual property. What you create remains yours.</p>
+
+      <h2>5. Acceptable Use</h2>
+      <p>We want rehablix to be a positive space for learning and clinical growth. You agree not to:</p>
+      <ul>
+        <li>Use the platform for any unlawful purpose or to violate any applicable laws</li>
+        <li>Attempt to reverse-engineer, copy, or extract our proprietary algorithms or software</li>
+        <li>Share your account credentials with others or resell access to our services</li>
+        <li>Use the platform to generate harmful, misleading, or inappropriate content</li>
+        <li>Interfere with or disrupt the security, integrity, or performance of our services</li>
+      </ul>
+      <p>We reserve the right to suspend or terminate accounts that violate these guidelines, though we will always make reasonable efforts to notify you and discuss a resolution first.</p>
+
+      <h2>6. Intellectual Property</h2>
+      <p>All content, branding, design, software, and algorithms on rehablix are the property of rehablix or our licensors and are protected by copyright, trademark, and other intellectual property laws. You may not use our logos or branding without prior written permission.</p>
+
+      <h2>7. Termination</h2>
+      <p>You may cancel your account at any time through your account settings. We may suspend or terminate your access if you materially breach these terms. Upon termination, you will lose access to subscription features, but your data will be available for export upon request for a reasonable period.</p>
+
+      <h2>8. Changes to These Terms</h2>
+      <p>As we grow and improve, we may update these terms. We'll notify you via email or through the platform before significant changes take effect. Your continued use of rehablix after changes become effective constitutes acceptance of the updated terms.</p>
+
+      <h2>9. Contact Us</h2>
+      <p>If you have questions, concerns, or feedback — we genuinely want to hear from you. Please reach out:</p>
+      <p>📧 <strong>support@rehablix.com</strong><br>🌐 <strong>www.rehablix.com/contact</strong></p>
+    </div>
+  </div>
+
+  <!-- ==================== PRIVACY POLICY ==================== -->
+  <div id="privacy" class="legal-section">
+    <div class="legal-card">
+      <h2>Your Privacy Matters to Us</h2>
+      <p>At rehablix, we treat your personal data with the same care we'd want for our own. This Privacy Policy explains what information we collect, how we use it, and the choices you have. We are committed to transparency and protecting your privacy.</p>
+
+      <div class="highlight-box">
+        <strong>🔐 Our Core Promise:</strong> We will never sell your personal data to third parties. Your trust is our most valuable asset.
+      </div>
+
+      <h2>1. Information We Collect</h2>
+      <h3>Information you provide:</h3>
+      <ul>
+        <li>Account details: name, email address, professional specialization, and password (encrypted)</li>
+        <li>Clinical data: ROM measurements, gait analyses, assignment drafts, notes, and documentation you create</li>
+        <li>Payment information: handled securely by our payment partners (Paystack, Flutterwave, Google Pay) — we do not store full card details</li>
+        <li>Communications: messages you send to our support team or feedback you provide</li>
+      </ul>
+
+      <h3>Information automatically collected:</h3>
+      <ul>
+        <li>Usage data: features you use, time spent, and interaction patterns</li>
+        <li>Device information: browser type, operating system, IP address (anonymized where possible)</li>
+        <li>Location data: country-level for regional pricing — we respect your privacy and do not track precise geolocation</li>
+      </ul>
+
+      <h2>2. How We Use Your Information</h2>
+      <ul>
+        <li>✅ To provide, maintain, and improve our services</li>
+        <li>✅ To process subscriptions and payments securely</li>
+        <li>✅ To analyze usage patterns and enhance user experience</li>
+        <li>✅ To communicate important updates, security notices, or support responses</li>
+        <li>✅ To comply with legal obligations</li>
+      </ul>
+
+      <h2>3. Data Storage & Security</h2>
+      <p>Your data is stored on Firebase (Google Cloud Platform) with industry-standard encryption both in transit and at rest. We implement administrative, technical, and physical safeguards to protect against unauthorized access. While no system is 100% secure, we continuously update our security practices.</p>
+
+      <h2>4. Sharing Your Information</h2>
+      <p>We only share your information in limited circumstances:</p>
+      <ul>
+        <li><strong>Service Providers:</strong> Payment processors (Paystack, Flutterwave, Google Pay) and hosting providers (Firebase) — they are contractually bound to protect your data</li>
+        <li><strong>Legal Compliance:</strong> If required by law or to protect the rights, safety, or property of rehablix or our users</li>
+        <li><strong>With Your Consent:</strong> We will ask for permission before sharing for any other purpose</li>
+      </ul>
+
+      <h2>5. Your Rights & Choices</h2>
+      <p>Depending on your location, you may have the right to:</p>
+      <ul>
+        <li>Access, correct, or delete your personal data</li>
+        <li>Export your data in a portable format</li>
+        <li>Withdraw consent for optional processing</li>
+        <li>Request restriction of processing</li>
+      </ul>
+      <p>To exercise these rights, email us at <strong>privacy@rehablix.com</strong>. We'll respond within 30 days.</p>
+
+      <h2>6. Children's Privacy</h2>
+      <p>rehablix is not directed to individuals under 18. We do not knowingly collect personal information from minors. If we learn we have inadvertently collected such data, we will delete it promptly.</p>
+
+      <h2>7. International Data Transfers</h2>
+      <p>We operate globally, and your data may be processed in countries where we or our service providers operate. We take appropriate safeguards to ensure your data receives adequate protection.</p>
+
+      <h2>8. Cookies & Tracking</h2>
+      <p>We use essential cookies for authentication and functionality. You can manage cookie preferences in your browser settings, though some features may be affected.</p>
+
+      <h2>9. Updates to This Policy</h2>
+      <p>We may update this Privacy Policy occasionally. We'll notify you of material changes via email or platform notification. The "Effective Date" at the top indicates when the policy was last revised.</p>
+
+      <h2>10. Contact Our Privacy Team</h2>
+      <p>Questions about privacy? Please contact our Data Protection Officer:</p>
+      <p>📧 <strong>privacy@rehablix.com</strong></p>
+    </div>
+  </div>
+
+  <!-- ==================== SUBSCRIPTION TERMS ==================== -->
+  <div id="subscription" class="legal-section">
+    <div class="legal-card">
+      <h2>Subscription Plans & Billing</h2>
+      <p>We offer flexible plans to accommodate students, professionals, and institutions. Here's what you should know about subscriptions.</p>
+
+      <div class="gentle-note">
+        <i>💚 Fair & transparent billing:</i> We believe in no surprises. All prices are clearly displayed in your local currency before you subscribe.
+      </div>
+
+      <h2>1. Free Plan</h2>
+      <p>The Free plan provides limited access to core features. No payment information is required. You can continue using the Free plan indefinitely or upgrade anytime.</p>
+
+      <h2>2. Paid Subscriptions (Student & Pro)</h2>
+      <ul>
+        <li><strong>Billing:</strong> Subscriptions are billed monthly or yearly in advance, depending on your selected billing cycle.</li>
+        <li><strong>Local Currency Pricing:</strong> Prices are displayed in your local currency based on your location. We use current exchange rates to ensure fairness.</li>
+        <li><strong>Automatic Renewal:</strong> Subscriptions automatically renew at the end of each billing period unless canceled.</li>
+        <li><strong>Cancellation:</strong> You may cancel anytime from your account settings. Cancellation takes effect at the end of the current billing period — you won't receive a refund for the remaining period, but you'll retain access until the period ends.</li>
+      </ul>
+
+      <h2>3. Payment Methods</h2>
+      <p>We accept Paystack (Nigeria, Ghana, Kenya, South Africa), Flutterwave (multiple African countries), and Google Pay (international). All transactions are processed securely by our payment partners.</p>
+
+      <h2>4. Upgrading or Downgrading</h2>
+      <p>You may upgrade your plan at any time. The new price will be prorated for the remainder of your billing period. Downgrading takes effect at the next billing cycle, and you may lose access to higher-tier features immediately upon downgrade.</p>
+
+      <h2>5. Refund Policy</h2>
+      <p>We want you to be completely satisfied with rehablix. If you encounter significant issues, please contact support within 7 days of your initial subscription. We evaluate refund requests on a case-by-case basis and may offer partial refunds or credits. For ongoing subscriptions, we generally do not provide refunds for partial months after cancellation, but we'll work with you to find a fair resolution.</p>
+
+      <div class="highlight-box">
+        <strong>🤝 Our commitment:</strong> If there's a genuine technical problem preventing you from using the features you paid for, we'll make it right — whether through fixing the issue, extending your subscription, or providing a refund.
+      </div>
+
+      <h2>6. Price Changes</h2>
+      <p>We may adjust prices occasionally. We'll notify you at least 30 days in advance of any price increase affecting your active subscription. If you don't accept the price change, you may cancel before it takes effect.</p>
+
+      <h2>7. Free Trials & Promotions</h2>
+      <p>From time to time, we may offer free trials or promotional discounts. Terms will be disclosed at the time of offer. At the end of a free trial, we may automatically convert your account to a paid plan unless you cancel.</p>
+    </div>
+  </div>
+
+  <!-- ==================== DISCLAIMER ==================== -->
+  <div id="disclaimer" class="legal-section">
+    <div class="legal-card">
+      <h2>Important Clinical & Legal Disclaimer</h2>
+      
+      <div class="highlight-box" style="background:#fff0ed; border-left-color:#dc2626;">
+        <strong>⚠️ Please read carefully:</strong> rehablix is a supportive educational and clinical documentation tool — not a substitute for professional medical judgment.
+      </div>
+
+      <h2>1. No Medical Advice</h2>
+      <p>rehablix provides AI-assisted tools to support rehabilitation professionals and students. However, all content, analyses, suggestions, and outputs generated by our platform are for <strong>informational and educational purposes only</strong>. They do not constitute medical advice, diagnosis, or treatment recommendations.</p>
+      <p>You, as a healthcare professional or student, remain solely responsible for all clinical decisions, patient assessments, treatment plans, and documentation. Always exercise your independent professional judgment and verify critical information.</p>
+
+      <h2>2. AI Limitations</h2>
+      <p>Our AI models are trained on available data and may produce incomplete, inaccurate, or biased outputs. You should never rely solely on AI-generated content for patient care. rehablix is designed as an assistant — the final responsibility always rests with you.</p>
+
+      <h2>3. Not Emergency Service</h2>
+      <p>rehablix is not intended for emergency situations. If you are experiencing a medical emergency, contact your local emergency services immediately.</p>
+
+      <h2>4. Regulatory Compliance</h2>
+      <p>As a user, you are responsible for complying with applicable laws, regulations, and professional standards in your jurisdiction, including patient privacy laws (e.g., HIPAA, GDPR, local equivalents). We provide tools to help, but compliance is ultimately your responsibility.</p>
+
+      <h2>5. No Guarantee of Accuracy</h2>
+      <p>While we strive for excellence, we do not guarantee that rehablix will be error-free, uninterrupted, or completely secure. The platform is provided "as is" and "as available."</p>
+
+      <h2>6. Limitation of Liability</h2>
+      <p>To the fullest extent permitted by law, rehablix and its team shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the platform. Our total liability shall not exceed the amount you paid us in the preceding 12 months.</p>
+
+      <div class="gentle-note">
+        <i>🩺 A thoughtful reminder:</i> Technology is a tool, not a replacement for human wisdom, compassion, and professional judgment. Use rehablix as a partner in your clinical journey — not as the final authority.
+      </div>
+
+      <h2>7. Indemnification</h2>
+      <p>You agree to indemnify and hold rehablix harmless from any claims, damages, or expenses arising from your use of the platform in violation of these terms or applicable laws.</p>
+    </div>
+  </div>
+
+  <!-- Back to Home -->
+  <div style="text-align: center;">
+    <a href="index.html" class="back-home">
+      ← Back to rehablix
+    </a>
+  </div>
+
+  <footer>
+    <p>© 2026 rehabverve enterprise — Clinical co‑pilot for rehabilitation professionals</p>
+    <p style="margin-top: 0.5rem;">Questions? <a href="mailto:support@rehablix.com" style="color:#009688;">support@rehablix.com</a></p>
+  </footer>
+</div>
+
+<script>
+  // Tab switching functionality
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tabId = btn.getAttribute('data-tab');
+      
+      // Update active tab button
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      // Update active section
+      document.querySelectorAll('.legal-section').forEach(section => section.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

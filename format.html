@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>  
+  <!-- Inline script to set theme before paint -->
+  <script>
+    (function() {
+      var stored = localStorage.getItem('rehab-theme');
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (stored === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else if (stored === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+      } else {
+        document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+      }
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5, user-scalable=yes">
+  <title>rehablix · Assessment Format Generator</title>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js" defer></script>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/auth.css">
+  <link rel="stylesheet" href="css/format.css">
+  <link rel="manifest" href="/manifest.json">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js');
+    }
+  </script>
+  <link rel="stylesheet" href="css/invite-modal.css">
+
+  <!-- ------------------------------------------------------------------
+       Embed mode (Phase 4, Lixa inline invocation) — added, not rewritten.
+       When loaded inside Lixa's inline result frame (?embed=1), this page
+       hides its own navbar (Lixa's shell already provides navigation) so
+       the tool reads as an inline result card instead of a full separate
+       page. Nothing else about format.js changes. Same pattern as
+       standardized.html.
+       ------------------------------------------------------------------ -->
+  <style>
+    html.embed-mode body { background: transparent; }
+    html.embed-mode .navbar { display: none; }
+    html.embed-mode main { padding-top: 0.75rem !important; }
+  </style>
+  <script>
+    (function () {
+      if (new URLSearchParams(window.location.search).get('embed') === '1') {
+        document.documentElement.classList.add('embed-mode');
+      }
+    })();
+  </script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-left">
+        <div class="logo-text">
+          <span class="logo-lop">rehablix</span>
+          <span class="logo-full">Assessment Format</span>
+        </div>
+      </div>
+      <div class="nav-right">
+        <a href="index.html" class="icon-btn home-icon" aria-label="Home">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 9L12 3L21 9L21 20H15V14H9V20H3V9Z" stroke="currentColor" fill="none"/>
+          </svg>
+        </a>
+        <button class="icon-btn history-nav-btn" id="historyNavBtn" aria-label="History" style="display:none;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M12 8V12L15 15M12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21Z" stroke="currentColor" fill="none"/>
+          </svg>
+        </button>
+        <button class="icon-btn theme-toggle" id="themeToggle" aria-label="theme mode">
+          <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+        <!-- Auth elements will be injected by modal.js -->
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <div class="hero-content">
+        <h1>Assessment <span class="hero-accent">Format Generator</span></h1>
+        <p class="hero-sub">Fill in the details below to generate a professional assessment template.</p>
+      </div>
+    </header>
+
+    <section class="format-section">
+      <div class="format-container">
+        <!-- Form Card -->
+        <div class="format-card">
+          <h2>Patient & Assessment Information</h2>
+          <form id="assessmentForm">
+
+            <!-- 1. Patient Biodata -->
+            <div class="form-card">
+              <h3>1. Patient Biodata</h3>
+              <div class="form-group">
+                <label for="patientName">Patient Name *</label>
+                <input type="text" id="patientName" class="form-input" placeholder="e.g. John Doe" required>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="patientAge">Age *</label>
+                  <input type="number" id="patientAge" class="form-input" placeholder="e.g. 45" min="1" max="150" required>
+                </div>
+                <div class="form-group">
+                  <label for="patientGender">Gender *</label>
+                  <select id="patientGender" class="form-input" required>
+                    <option value="">Select gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                    <option value="Prefer not to say">Prefer not to say</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- NEW: Referral Source -->
+              <div class="form-group">
+                <label for="referralSource">Referral Source</label>
+                <select id="referralSource" class="form-input">
+                  <option value="">Select referral source</option>
+                  <option value="Self-referral">Self-referral</option>
+                  <option value="Physician / Medical Doctor">Physician / Medical Doctor</option>
+                  <option value="Neurologist">Neurologist</option>
+                  <option value="Orthopaedic Surgeon">Orthopaedic Surgeon</option>
+                  <option value="Paediatrician">Paediatrician</option>
+                  <option value="Psychiatrist">Psychiatrist</option>
+                  <option value="Family / Caregiver">Family / Caregiver</option>
+                  <option value="Another Therapist">Another Therapist</option>
+                  <option value="Hospital Ward">Hospital Ward</option>
+                  <option value="Community / NGO">Community / NGO</option>
+                </select>
+              </div>
+
+              <!-- NEW: Clinical Setting -->
+              <div class="form-group">
+                <label for="clinicalSetting">Clinical Setting</label>
+                <select id="clinicalSetting" class="form-input">
+                  <option value="">Select setting</option>
+                  <option value="Inpatient (Hospital Ward)">Inpatient (Hospital Ward)</option>
+                  <option value="Outpatient Clinic">Outpatient Clinic</option>
+                  <option value="Home Visit">Home Visit</option>
+                  <option value="Community / Day Centre">Community / Day Centre</option>
+                  <option value="School / Educational Setting">School / Educational Setting</option>
+                  <option value="Psychiatric Unit">Psychiatric Unit</option>
+                  <option value="Rehabilitation Centre">Rehabilitation Centre</option>
+                  <option value="Private Practice">Private Practice</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- 2. Assessment Details -->
+            <div class="form-card">
+              <h3>2. Assessment Details</h3>
+
+              <!-- NEW: Diagnosis Picker -->
+              <div class="form-group">
+                <label for="diagnosisCategory">Diagnosis Category</label>
+                <select id="diagnosisCategory" class="form-input" onchange="updateDiagnosisList()">
+                  <option value="">Select category (optional)</option>
+                  <option value="neurological">Neurological</option>
+                  <option value="orthopaedic">Orthopaedic</option>
+                  <option value="paediatric">Paediatric / Developmental</option>
+                  <option value="psychiatric">Psychiatric</option>
+                  <option value="cardiopulmonary">Cardiopulmonary</option>
+                  <option value="geriatric">Geriatric</option>
+                  <option value="other">Other / Custom</option>
+                </select>
+              </div>
+              <div class="form-group" id="diagnosisPickerGroup" style="display:none;">
+                <label for="diagnosisPicker">Common Diagnoses</label>
+                <select id="diagnosisPicker" class="form-input" onchange="applyDiagnosisPicker()">
+                  <option value="">Pick a diagnosis...</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="patientDiagnosis">Diagnosis / Chief Complaint *</label>
+                <input type="text" id="patientDiagnosis" class="form-input" placeholder="e.g. Right hemiplegia post-stroke, Autism Spectrum Disorder..." required>
+              </div>
+
+              <!-- NEW: Precautions -->
+              <div class="form-group">
+                <label for="precautions">Precautions / Contraindications</label>
+                <input type="text" id="precautions" class="form-input" placeholder="e.g. Weight-bearing restrictions, fall risk, seizure history...">
+              </div>
+
+              <!-- NEW: Functional Goals -->
+              <div class="form-group">
+                <label for="functionalGoals">Functional Goals</label>
+                <input type="text" id="functionalGoals" class="form-input" placeholder="e.g. Independent dressing, return to work, safe ambulation...">
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="assessmentType">Assessment Type *</label>
+                  <select id="assessmentType" class="form-input" required>
+                    <option value="">Select type</option>
+                    <option value="Initial Evaluation">Initial Evaluation</option>
+                    <option value="Comprehensive Assessment">Comprehensive Assessment</option>
+                    <option value="Functional Assessment">Functional Assessment</option>
+                    <option value="Progress Note">Progress Note</option>
+                    <option value="Reassessment">Reassessment</option>
+                    <option value="Discharge Summary">Discharge Summary</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="categorySelect">Category</label>
+                  <select id="categorySelect" class="form-input">
+                    <option value="General">General</option>
+                    <option value="Medical">Medical</option>
+                    <option value="Orthopaedic">Orthopaedic</option>
+                    <option value="Paediatric">Paediatric</option>
+                    <option value="Psychiatry">Psychiatry</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="deptSelect">Department *</label>
+                  <select id="deptSelect" class="form-input" required>
+                    <option value="Occupational Therapy">Occupational Therapy</option>
+                    <option value="Physiotherapy">Physiotherapy</option>
+                    <option value="Speech Therapy">Speech Therapy</option>
+                    <option value="Nursing">Nursing</option>
+                    <option value="Clinical Psychology">Clinical Psychology</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Estimated Length (Pages)</label>
+                  <div class="range-slider">
+                    <input type="range" id="pageCount" min="1" max="10" value="2">
+                    <span id="pageVal">2</span> Pages
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Clinical Notes -->
+            <div class="form-card">
+              <h3>3. Clinical Notes</h3>
+              <div class="form-group">
+                <label for="clinicalNotes">Clinical Notes / Special Instructions</label>
+                <textarea id="clinicalNotes" rows="4" class="form-input" placeholder="Any specific areas to focus on, patient history, or special considerations..."></textarea>
+              </div>
+              <div class="form-group checkbox">
+                <input type="checkbox" id="includeStandardSections" checked>
+                <label for="includeStandardSections">Include standard SOAP sections (Subjective, Objective, Assessment, Plan)</label>
+              </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+              <button type="submit" class="btn-primary" id="generateBtn">
+                <span class="btn-text">Generate Format</span>
+                <span class="loading-spinner-small" style="display: none;"></span>
+              </button>
+              <button type="button" class="btn-secondary" id="clearBtn">Clear</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Result Preview Card (appears after generation) -->
+        <div class="result-preview-card" id="resultPreviewCard" style="display: none;">
+          <div class="preview-header">
+            <h3>Latest Generated Assessment</h3>
+            <span class="preview-badge">New</span>
+          </div>
+          <div class="preview-content" id="resultPreview"></div>
+          <div class="preview-footer">
+            <button class="btn-primary preview-btn" id="viewFullBtn">📖 View Full Assessment</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>© rehablix — Clinical co‑pilot for rehab professionals</p>
+  </footer>
+
+  <!-- History Side Drawer -->
+  <div class="history-drawer" id="historyDrawer">
+    <div class="drawer-header">
+      <h2>Your Assessment History</h2>
+      <button class="drawer-close" id="closeDrawer">&times;</button>
+    </div>
+    <div class="drawer-stats" id="drawerStats">
+      <span class="stat-item">📊 Total: <span id="totalCount">0</span></span>
+      <span class="stat-item">📅 Latest: <span id="latestDate">-</span></span>
+    </div>
+    <div class="drawer-search">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="historySearch" placeholder="Search history..." class="drawer-search-input">
+    </div>
+    <div class="drawer-list" id="historyList">
+      <div class="loading-state history-loading">
+        <div class="loading-spinner"></div>
+        <p>Loading history...</p>
+      </div>
+    </div>
+    <div class="drawer-footer">
+      <button class="btn-secondary" id="clearHistoryBtn">Clear All History</button>
+    </div>
+  </div>
+
+  <!-- Download Format Modal -->
+  <div id="downloadModal" class="modal download-modal">
+    <div class="modal-content glass download-content">
+      <h3>Choose Download Format</h3>
+      <div class="download-options">
+        <button class="btn-primary" id="downloadWordOption">📄 Word Document</button>
+        <button class="btn-primary" id="downloadPdfOption">🖨️ PDF Document</button>
+        <button class="btn-secondary" id="cancelDownload">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteConfirmModal" class="modal delete-confirm-modal">
+    <div class="modal-content glass delete-confirm-content">
+      <div class="warning-icon">⚠️</div>
+      <h3>Delete History Item</h3>
+      <p>Are you sure you want to delete this assessment? This action cannot be undone.</p>
+      <div class="delete-actions">
+        <button class="btn-secondary" id="cancelDeleteBtn">Cancel</button>
+        <button class="btn-danger" id="confirmDeleteBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/config.js" defer></script>
+  <script src="js/plan.js" defer></script>
+  <link rel="stylesheet" href="css/error-reporter.css">
+  <script src="js/error-reporter.js" defer></script>
+  <script src="js/modal.js" defer></script>
+  <script src="js/center.js" defer></script>
+  <script src="js/invite-modal.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/tools.js" defer></script>
+  <script src="js/handoff.js" defer></script>
+  <script src="js/format.js" defer></script>
+  <script>
+    // Bring over anything the user shared with Lixa (feature 7). Unlike
+    // standardized.html, this form has several required fields (patient
+    // name/age/gender/diagnosis, assessment type, department) that a
+    // single free-text handoff can't safely fill in — so this prefills
+    // the free-text "Clinical Notes" field and stops there; the user
+    // still reviews/completes the rest before generating.
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!window.RehablixHandoff) return;
+      const data = window.RehablixHandoff.consume('format.html');
+      if (!data || !data.text) return;
+      window.RehablixHandoff.applyTo(data, { textFieldId: 'clinicalNotes' });
+    });
+  </script>
+  <script src="js/theme.js" defer></script>
+
+  <!-- Diagnosis Picker Script -->
+  <script>
+    const diagnosisMap = {
+      neurological: [
+        'Stroke / CVA (Cerebrovascular Accident)',
+        'Traumatic Brain Injury (TBI)',
+        'Spinal Cord Injury',
+        'Multiple Sclerosis',
+        'Parkinson\'s Disease',
+        'Guillain-Barré Syndrome',
+        'Cerebral Palsy',
+        'Peripheral Neuropathy',
+        'Epilepsy / Seizure Disorder',
+        'Hydrocephalus',
+      ],
+      orthopaedic: [
+        'Fracture (Upper Limb)',
+        'Fracture (Lower Limb)',
+        'Total Hip Replacement',
+        'Total Knee Replacement',
+        'Rotator Cuff Tear',
+        'Lumbar Disc Herniation',
+        'Cervical Spondylosis',
+        'Tendon Repair (Hand)',
+        'Amputation',
+        'Osteoarthritis',
+      ],
+      paediatric: [
+        'Autism Spectrum Disorder (ASD)',
+        'Developmental Delay',
+        'Down Syndrome',
+        'Attention Deficit Hyperactivity Disorder (ADHD)',
+        'Sensory Processing Disorder',
+        'Intellectual Disability',
+        'Cerebral Palsy (Paediatric)',
+        'Dyspraxia / DCD',
+        'Cleft Palate (Post-surgical)',
+        'Spina Bifida',
+      ],
+      psychiatric: [
+        'Major Depressive Disorder',
+        'Schizophrenia',
+        'Bipolar Disorder',
+        'Anxiety Disorder',
+        'Post-Traumatic Stress Disorder (PTSD)',
+        'Substance Use Disorder',
+        'Borderline Personality Disorder',
+        'Obsessive-Compulsive Disorder (OCD)',
+        'Eating Disorder',
+        'First Episode Psychosis',
+      ],
+      cardiopulmonary: [
+        'Chronic Obstructive Pulmonary Disease (COPD)',
+        'Heart Failure (Cardiac Rehabilitation)',
+        'Post-COVID Syndrome (Long COVID)',
+        'Pulmonary Fibrosis',
+        'Post-Cardiac Surgery',
+        'Asthma',
+      ],
+      geriatric: [
+        'Dementia / Alzheimer\'s Disease',
+        'Hip Fracture (Elderly)',
+        'Falls & Balance Disorder',
+        'Frailty Syndrome',
+        'Deconditioning / Prolonged Bed Rest',
+        'Osteoporosis with Fracture',
+      ],
+    };
+
+    function updateDiagnosisList() {
+      const cat = document.getElementById('diagnosisCategory').value;
+      const pickerGroup = document.getElementById('diagnosisPickerGroup');
+      const picker = document.getElementById('diagnosisPicker');
+
+      if (!cat || cat === 'other') {
+        pickerGroup.style.display = 'none';
+        return;
+      }
+
+      const list = diagnosisMap[cat] || [];
+      picker.innerHTML = '<option value="">Pick a diagnosis...</option>';
+      list.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d;
+        opt.textContent = d;
+        picker.appendChild(opt);
+      });
+      pickerGroup.style.display = 'block';
+    }
+
+    function applyDiagnosisPicker() {
+      const val = document.getElementById('diagnosisPicker').value;
+      if (val) {
+        document.getElementById('patientDiagnosis').value = val;
+      }
+    }
+  </script>
+</body>
+</html>

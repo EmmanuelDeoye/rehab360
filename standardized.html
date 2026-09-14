@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>  
+  <!-- Inline script to set theme before paint -->
+  <script>
+    (function() {
+      var stored = localStorage.getItem('rehab-theme');
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (stored === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else if (stored === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+      } else {
+        // No preference saved or set to "system" → follow device setting
+        document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+      }
+    })();
+  </script>
+  <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5, user-scalable=yes">
+  <title>rehablix · Standardized Tools Generator</title>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js" defer></script>
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/auth.css">
+  <link rel="stylesheet" href="css/standardized.css">
+  <link rel="stylesheet" href="css/mobile-fixes.css">
+  <style>
+    /* Overflow protection styles */
+    .result-content-wrapper {
+      width: 100%;
+      max-width: 100%;
+      overflow: hidden;
+      border-radius: inherit;
+    }
+    
+    #resultContent {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    #resultContent table {
+      max-width: 100% !important;
+      width: 100% !important;
+      table-layout: auto !important;
+    }
+    
+    #resultContent td,
+    #resultContent th {
+      word-wrap: break-word !important;
+      overflow-wrap: break-word !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    
+    #resultContent * {
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+    /* ------------------------------------------------------------------
+       Embed mode (Phase 3, Lixa inline invocation) — added, not rewritten.
+       When loaded inside Lixa's inline result frame (?embed=1), this page
+       hides its own navbar/home-icon (Lixa's shell already provides
+       navigation) so the tool reads as an inline result card instead of
+       a full separate page. Nothing else about standardized.js changes.
+       ------------------------------------------------------------------ */
+    html.embed-mode body { background: transparent; }
+    html.embed-mode .navbar { display: none; }
+    html.embed-mode .container,
+    html.embed-mode main { padding-top: 0.75rem !important; }
+  </style>
+  <script>
+    (function () {
+      if (new URLSearchParams(window.location.search).get('embed') === '1') {
+        document.documentElement.classList.add('embed-mode');
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="css/invite-modal.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-left">
+        <div class="logo-text">
+          <span class="logo-lop">rehablix</span>
+          <span class="logo-full">standardized tools</span>
+        </div>
+      </div>
+      <div class="nav-right">
+        <a href="index.html" class="icon-btn home-icon" aria-label="Home">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 9L12 3L21 9L21 20H15V14H9V20H3V9Z" stroke="currentColor" fill="none"/>
+          </svg>
+        </a>
+
+        <button class="icon-btn theme-toggle" id="themeToggle" aria-label="theme mode">
+          <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+        <!-- Auth elements will be injected by modal.js -->
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <div class="hero-content">
+        <h1>Standardized <span class="hero-accent">Tools Generator</span></h1>
+        <p class="hero-sub">Enter the name of a standardized assessment and get a ready‑to‑use PDF.</p>
+      </div>
+    </header>
+
+    <div class="standardized-disclaimer">
+      <span class="standardized-disclaimer-icon">⚠️</span>
+      <p>
+        AI-generated tools are provided for quick reference and drafting only. Standardized assessments
+        are often copyrighted/licensed instruments — always verify items, scoring, and cutoffs against
+        the original licensed version before clinical or documented use.
+      </p>
+    </div>
+
+    <section class="tool-section">
+      <div class="tool-container">
+        <!-- Form Card -->
+        <div class="tool-card">
+          <h2>Generate a Standardized Tool</h2>
+          <form id="toolForm">
+            <div class="form-group">
+              <label for="toolName">Tool Name *</label>
+              <input type="text" id="toolName" class="form-input" placeholder="e.g. MOHOST, COTE Scale, MMSE" required>
+            </div>
+
+            <div class="form-group checkbox">
+              <input type="checkbox" id="includeGuides">
+              <label for="includeGuides">Include guides</label>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn-primary" id="generateBtn">
+                <span class="btn-text">Generate Tool</span>
+                <span class="loading-spinner-small" style="display: none;"></span>
+              </button>
+              <button type="button" class="btn-secondary" id="clearBtn">Clear</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Result Card (initially hidden) -->
+        <div class="result-card" id="resultCard" style="display: none;">
+          <div class="result-header">
+            <h3>Generated Tool</h3>
+            <span class="result-badge">New</span>
+          </div>
+          <div class="result-content-wrapper">
+            <div id="resultContent"></div>
+          </div>
+          <div class="result-footer">
+            <button class="btn-primary" id="downloadPdfBtn">⬇️ Download PDF</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- History Section -->
+    <section class="history-section" id="historySection">
+      <div class="history-container">
+        <div class="history-header">
+          <h3>Your Generated Tools</h3>
+          <div class="history-stats">
+            <span class="stat-item">📊 Total: <span id="totalCount">0</span></span>
+            <span class="stat-item">📅 Latest: <span id="latestDate">-</span></span>
+          </div>
+        </div>
+        
+        <div class="history-list" id="historyList">
+          <div class="empty-history">
+            <p>No history yet</p>
+            <small>Generate your first standardized tool to see it here</small>
+          </div>
+        </div>
+        
+        <div class="history-footer">
+          <button class="btn-secondary" id="clearHistoryBtn">Clear All History</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>© rehablix — AI tools for rehabilitation</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/config.js" defer></script>
+  <script src="js/plan.js" defer></script>
+  <link rel="stylesheet" href="css/error-reporter.css">
+  <script src="js/error-reporter.js" defer></script>
+  <script src="js/modal.js" defer></script>        <!-- Creates auth modal, toast, etc. -->
+  <script src="js/center.js" defer></script>
+  <script src="js/invite-modal.js" defer></script>
+  <script src="js/auth.js" defer></script>         <!-- Auth logic -->
+  <script src="js/tools.js" defer></script>
+  <script src="js/theme.js" defer></script>        <!-- Theme logic -->
+  <script src="js/handoff.js" defer></script>
+  <script src="js/standardized.js" defer></script> <!-- Standardized tools logic -->
+  <script>
+    // Bring over anything the user shared with Lixa (feature 7), and —
+    // since this page has exactly one required field — auto-generate
+    // when opened inline from Lixa's auto-run (Phase 10), instead of
+    // making the user retype the instrument name and tap Generate again.
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!window.RehablixHandoff) return;
+      const data = window.RehablixHandoff.consume('standardized.html');
+      if (!data || !data.text) return;
+      window.RehablixHandoff.applyTo(data, { textFieldId: 'toolName' });
+
+      const isEmbedded = document.documentElement.classList.contains('embed-mode');
+      if (!isEmbedded) return; // outside Lixa's inline card, just prefill — let the user confirm before generating
+      const form = document.getElementById('toolForm');
+      if (!form) return;
+      // Small delay so standardized.js's own init (API token fetch, etc.)
+      // has a moment to finish before the form submits.
+      setTimeout(() => {
+        if (typeof form.requestSubmit === 'function') form.requestSubmit();
+        else form.dispatchEvent(new Event('submit', { cancelable: true }));
+      }, 600);
+    });
+  </script>
+</body>
+</html>

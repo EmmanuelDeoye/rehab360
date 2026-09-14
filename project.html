@@ -1,0 +1,614 @@
+<!-- project.html – Academic Project Maker v3.2 (independent scrolling, improved supervisor, floating button, auto word count) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    (function() {
+      var stored = localStorage.getItem('rehab-theme');
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (stored === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else if (stored === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+      } else {
+        document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+      }
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5, user-scalable=yes">
+  <title>rehablix · Project Maker</title>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js" defer></script>
+  <!-- Marked for AI response rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/auth.css">
+  <link rel="stylesheet" href="css/project.css">
+  <link rel="stylesheet" href="css/history-migration.css">
+  <link rel="stylesheet" href="css/invite-modal.css">
+</head>
+<body data-migrate-types="projects">
+  <!-- ===== Navbar ===== -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-left">
+        <div class="logo-text">
+          <span class="logo-lop">rehablix</span>
+          <span class="logo-full">project maker</span>
+        </div>
+      </div>
+      <div class="nav-right">
+        <a href="index.html" class="icon-btn home-icon" aria-label="Home">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 9L12 3L21 9L21 20H15V14H9V20H3V9Z" stroke="currentColor" fill="none"/>
+          </svg>
+        </a>
+        <!-- History / My Projects button -->
+        <button class="icon-btn history-nav-btn" id="historyNavBtn" aria-label="My Projects" style="display:none;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M12 8V12L15 15M12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21Z" stroke="currentColor" fill="none"/>
+          </svg>
+        </button>
+        <button class="icon-btn theme-toggle" id="themeToggle" aria-label="theme mode">
+          <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ===== Unsaved Changes Overlay ===== -->
+  <div class="unsaved-overlay" id="unsavedOverlay" style="display:none;">
+    <div class="unsaved-banner">
+      <i class="fas fa-exclamation-circle"></i>
+      <span>You have unsaved changes</span>
+      <button class="save-now-btn" id="saveNowBtn">Save Now</button>
+    </div>
+  </div>
+
+  <!-- ===== Main Project Workspace ===== -->
+  <main class="project-main" id="projectMain">
+    <!-- Mobile Toggle Buttons -->
+    <div class="mobile-toggles">
+      <button id="toggleChaptersBtn" class="toggle-btn">
+        <i class="fas fa-list"></i> Chapters
+      </button>
+      <button id="toggleAIPanelBtn" class="toggle-btn">
+        <i class="fas fa-robot"></i> AI Supervisor
+      </button>
+    </div>
+
+    <div class="project-workspace" id="projectWorkspace">
+      <!-- ===== Left Sidebar: Chapters + Resources ===== -->
+      <aside class="chapters-sidebar" id="chaptersSidebar">
+        <div class="sidebar-header">
+          <h3><i class="fas fa-book"></i> Chapters</h3>
+          <div class="sidebar-header-actions">
+            <button class="icon-btn resource-toggle-btn" id="resourceToggleBtn" title="Resources">
+              <i class="fas fa-file-medical-alt"></i>
+            </button>
+            <button class="sidebar-close" id="closeChaptersBtn" title="Close sidebar">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+        <!-- Project Selector -->
+        <div class="project-selector" id="projectSelector">
+          <select id="currentProjectSelect" title="Switch project">
+            <option value="">Loading projects...</option>
+          </select>
+          <button id="newProjectBtn" class="icon-btn" title="Create new project">
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+        <!-- Chapters List -->
+        <div class="chapters-list" id="chaptersList">
+          <div class="empty-state">
+            <i class='bx bx-book-open'></i>
+            <p>No project selected</p>
+            <small>Create or select a project to begin</small>
+          </div>
+        </div>
+        <!-- Resources Panel (hidden by default) -->
+        <div class="resources-panel" id="resourcesPanel" style="display:none;">
+          <div class="resources-panel-header">
+            <span><i class="fas fa-paperclip"></i> Resources</span>
+            <button class="back-to-chapters-btn" id="backToChaptersBtn">
+              <i class="fas fa-arrow-left"></i> Back to Chapters
+            </button>
+          </div>
+          <div class="resource-upload-area">
+            <label class="upload-label" for="resourceFileInput">
+              <i class="fas fa-cloud-upload-alt"></i>
+              <span>Upload Files</span>
+            </label>
+            <input type="file" id="resourceFileInput" multiple accept=".pdf,.docx,.txt,.doc" style="display:none;">
+            <small style="display:block; color:var(--text-secondary); margin-top:0.25rem;">PDF, DOCX, TXT supported</small>
+          </div>
+          <div id="uploadStatus" style="font-size:0.8rem; padding:0.5rem 0.75rem;"></div>
+          <div class="resource-list" id="resourceList">
+            <div class="empty-state" style="padding:1.5rem;">
+              <i class='bx bx-cloud-upload'></i>
+              <p style="font-size:0.85rem;">No resources uploaded</p>
+              <small>Upload articles, journals, or past projects for AI reference</small>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ===== Center: Editor Area ===== -->
+      <section class="editor-area" id="editorArea">
+        <!-- Editor Header -->
+        <div class="editor-header">
+          <h2 id="currentSectionTitle">Select a section</h2>
+          <div class="editor-actions">
+            <button class="action-btn" id="saveSectionBtn" title="Save (Ctrl+S)">
+              <i class="fas fa-save"></i> <span>Save</span>
+            </button>
+            <select id="exportScopeSelect" class="export-scope-select" title="Export scope">
+              <option value="section">Current Section</option>
+              <option value="chapter">Current Chapter</option>
+              <option value="project">Entire Project</option>
+            </select>
+            <button class="action-btn" id="exportWordBtn" title="Download as Word">
+              <i class="fas fa-file-word"></i> <span>Word</span>
+            </button>
+            <button class="action-btn" id="exportPdfBtn" title="Print / Save as PDF">
+              <i class="fas fa-file-pdf"></i> <span>PDF</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Formatting Toolbar -->
+        <div class="formatting-toolbar" id="formattingToolbar">
+          <div class="format-group">
+            <button class="format-btn" data-command="bold" title="Bold (Ctrl+B)">
+              <i class="fas fa-bold"></i>
+            </button>
+            <button class="format-btn" data-command="italic" title="Italic (Ctrl+I)">
+              <i class="fas fa-italic"></i>
+            </button>
+            <button class="format-btn" data-command="underline" title="Underline (Ctrl+U)">
+              <i class="fas fa-underline"></i>
+            </button>
+            <button class="format-btn" data-command="strikeThrough" title="Strikethrough">
+              <i class="fas fa-strikethrough"></i>
+            </button>
+            <span class="divider"></span>
+            <button class="format-btn" data-command="justifyLeft" title="Align Left">
+              <i class="fas fa-align-left"></i>
+            </button>
+            <button class="format-btn" data-command="justifyCenter" title="Align Center">
+              <i class="fas fa-align-center"></i>
+            </button>
+            <button class="format-btn" data-command="justifyRight" title="Align Right">
+              <i class="fas fa-align-right"></i>
+            </button>
+            <button class="format-btn" data-command="justifyFull" title="Justify">
+              <i class="fas fa-align-justify"></i>
+            </button>
+          </div>
+          <div class="format-group">
+            <select class="format-select" id="fontFamilySelect" title="Font Family">
+              <option value="Arial">Arial</option>
+              <option value="Georgia">Georgia</option>
+              <option value="Times New Roman">Times New Roman</option>
+              <option value="Courier New">Courier New</option>
+              <option value="Verdana">Verdana</option>
+            </select>
+            <select class="format-select" id="fontSizeSelect" title="Font Size">
+              <option value="1">8pt</option>
+              <option value="2">10pt</option>
+              <option value="3" selected>12pt</option>
+              <option value="4">14pt</option>
+              <option value="5">18pt</option>
+              <option value="6">24pt</option>
+              <option value="7">36pt</option>
+            </select>
+            <span class="divider"></span>
+            <button class="format-btn" data-command="insertUnorderedList" title="Bullet List">
+              <i class="fas fa-list-ul"></i>
+            </button>
+            <button class="format-btn" data-command="insertOrderedList" title="Numbered List">
+              <i class="fas fa-list-ol"></i>
+            </button>
+            <button class="format-btn" data-command="indent" title="Increase Indent">
+              <i class="fas fa-indent"></i>
+            </button>
+            <button class="format-btn" data-command="outdent" title="Decrease Indent">
+              <i class="fas fa-outdent"></i>
+            </button>
+            <span class="divider"></span>
+            <button class="format-btn" data-command="createLink" title="Insert Link">
+              <i class="fas fa-link"></i>
+            </button>
+            <button class="format-btn" data-command="unlink" title="Remove Link">
+              <i class="fas fa-unlink"></i>
+            </button>
+            <button class="format-btn" data-command="removeFormat" title="Clear Formatting">
+              <i class="fas fa-eraser"></i>
+            </button>
+            <button class="format-btn" data-command="undo" title="Undo (Ctrl+Z)">
+              <i class="fas fa-undo"></i>
+            </button>
+            <button class="format-btn" data-command="redo" title="Redo (Ctrl+Y)">
+              <i class="fas fa-redo"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Editor -->
+        <div class="editor-wrapper">
+          <div id="sectionEditor" class="section-editor" contenteditable="true"></div>
+        </div>
+
+        <!-- AI Controls -->
+        <div class="ai-controls">
+          <!-- Row 1: Writing Profile + Word Count + Reference Style -->
+          <div class="ai-controls-row">
+            <div class="ai-profile-selector">
+              <label>Writing Profile</label>
+              <select id="writingProfileSelect">
+                <option value="undergraduate">Undergraduate Student</option>
+                <option value="final_year">Final Year Student</option>
+                <option value="msc">MSc / Postgraduate</option>
+                <option value="phd">PhD Candidate</option>
+                <option value="nigerian_ug">Nigerian Undergraduate</option>
+              </select>
+            </div>
+
+            <div class="gen-option">
+              <label for="wordCountSelect">Word Count</label>
+              <select id="wordCountSelect">
+                <option value="auto" selected>Auto (AI decides)</option>
+                <option value="300">Short (~300 words)</option>
+                <option value="500">Medium (~500 words)</option>
+                <option value="1000">Long (~1000 words)</option>
+                <option value="2000">Extended (~2000 words)</option>
+                <option value="custom">Custom</option>
+              </select>
+              <input type="number" id="customWordCount" class="custom-word-count" 
+                     placeholder="e.g., 750" style="display:none;" 
+                     min="100" max="5000">
+            </div>
+
+            <div class="gen-option">
+              <label for="referenceStyleSelect">Reference Style</label>
+              <select id="referenceStyleSelect">
+                <option value="APA 7th" selected>APA 7th</option>
+                <option value="MLA 9th">MLA 9th</option>
+                <option value="Chicago 17th">Chicago 17th (Author-Date)</option>
+                <option value="Harvard">Harvard</option>
+                <option value="Vancouver">Vancouver</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Row 2: Tone Selector + Humanize Checkbox -->
+          <div class="ai-tone-row">
+            <div class="ai-tone-selector">
+              <label>AI Writing Tone</label>
+              <select id="aiToneSelect">
+                <option value="academic">Academic & Formal</option>
+                <option value="conversational">Conversational & Natural</option>
+                <option value="imperfect" selected>Student-Like (Avoids AI Detection)</option>
+                <option value="clinical">Clinical & Practical</option>
+              </select>
+            </div>
+
+            <div class="humanize-option" id="humanizeOption">
+              <label class="checkbox-label">
+                <input type="checkbox" id="humanizeCheckbox">
+                <span>Humanize content</span>
+              </label>
+              <small class="humanize-note">Evades AI detection (use responsibly)</small>
+            </div>
+          </div>
+
+          <!-- Modification Area -->
+          <div class="ai-modification-area" id="modificationArea" style="display:none;">
+            <label>Modification Instructions</label>
+            <textarea id="modificationInput" rows="2" placeholder="e.g., Add more local examples, make it shorter, include recent statistics..."></textarea>
+          </div>
+
+          <!-- AI Detection Score Display -->
+          <div class="ai-score-display" id="aiScoreDisplay" style="display:none;">
+            <div class="score-header">
+              <span>Humanization Score</span>
+              <span id="humanizationScore">--</span>
+            </div>
+            <div class="score-bar">
+              <div class="score-fill" id="scoreFill"></div>
+            </div>
+            <div class="score-details" id="scoreDetails">
+              <span id="scoreSentenceVar">Sentence Variation: --</span>
+              <span id="scorePredictability">Predictability: --</span>
+              <span id="scoreAILikely">AI-Likelihood: --</span>
+            </div>
+            <div class="score-plan-badge" id="scorePlanBadge">
+              <span class="badge-free">Free Plan - Basic Score</span>
+              <span class="badge-premium" style="display:none;">
+                <i class="fas fa-shield-alt"></i> Deep Scan Active
+              </span>
+            </div>
+          </div>
+
+          <!-- Version History Panel -->
+          <div class="version-panel" id="versionPanel">
+            <div class="version-header">
+              <span>Version History</span>
+              <button id="saveVersionBtn" class="version-save-btn">Save Version</button>
+            </div>
+            <div class="version-list" id="versionList">
+              <small style="color:var(--text-secondary);">No previous versions</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Generate Buttons -->
+        <div class="ai-section-generate">
+          <div class="generate-buttons-row">
+            <button id="aiGenerateSectionBtn" class="generate-btn">
+              <i class="fas fa-magic"></i> AI Generate This Section
+            </button>
+            <button id="aiGenerateChapterBtn" class="generate-btn chapter-gen-btn" style="display:none;">
+              <i class="fas fa-layer-group"></i> <span id="chapterGenBtnText">Generate Entire Chapter</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== Right Sidebar: AI Supervisor ===== -->
+      <aside class="ai-panel" id="aiPanel">
+        <div class="sidebar-header">
+          <h3><i class="fas fa-robot"></i> AI Supervisor</h3>
+          <button class="sidebar-close" id="closeAIPanelBtn" title="Close panel">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <!-- Supervisor Personality Settings -->
+        <div class="supervisor-personality" id="supervisorPersonality">
+          <div class="personality-row">
+            <div class="form-group-compact">
+              <label>Strictness</label>
+              <select id="supervisorStrictness">
+                <option value="easy">😊 Easy</option>
+                <option value="moderate" selected>🤔 Moderate</option>
+                <option value="strict">😤 Strict</option>
+              </select>
+            </div>
+            <div class="form-group-compact">
+              <label>Profession</label>
+              <input type="text" id="supervisorProfession" 
+                     placeholder="e.g., Professor of Physiotherapy" 
+                     value="Academic Supervisor">
+            </div>
+          </div>
+        </div>
+        <div class="ai-chat-area" id="aiChatArea">
+          <div class="ai-chat-messages" id="aiChatMessages">
+            <div class="ai-empty-state">
+              <i class="fas fa-robot"></i>
+              <p>Your AI supervisor is ready</p>
+              <small>Ask for guidance, corrections, or suggestions about your project</small>
+            </div>
+          </div>
+          <!-- Default prompts horizontal bar -->
+          <div class="default-prompts-bar" id="defaultPromptsBar" style="display:none;">
+            <div class="default-prompts-scroll" id="defaultPromptsScroll"></div>
+          </div>
+          <div class="ai-chat-input">
+            <textarea id="aiMessageInput" rows="2" placeholder="Ask your supervisor..."></textarea>
+            <button id="aiSendBtn" title="Send message">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- ===== Floating Scroll Button ===== -->
+    <button id="floatingScrollBtn" class="floating-scroll-btn" title="Scroll to AI controls">
+      <i class="fas fa-chevron-down"></i>
+    </button>
+  </main>
+
+  <!-- ===== Project Creation Modal ===== -->
+  <div class="modal project-modal" id="projectModal">
+    <div class="modal-content glass">
+      <div class="modal-header">
+        <h2><i class="fas fa-plus-circle"></i> Create New Project</h2>
+        <button class="modal-close" id="closeProjectModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- Step 1: Basic Info -->
+        <div id="projectCreateStep1">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Project Type</label>
+              <select id="projectType">
+                <option value="Undergraduate Project">Undergraduate Project</option>
+                <option value="Thesis">Thesis</option>
+                <option value="Dissertation">Dissertation</option>
+                <option value="Seminar">Seminar</option>
+                <option value="Case Study">Case Study</option>
+                <option value="SIWES Report">SIWES Report</option>
+                <option value="Research Proposal">Research Proposal</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Department</label>
+              <select id="projectDept">
+                <option value="Occupational Therapy">Occupational Therapy</option>
+                <option value="Physiotherapy">Physiotherapy</option>
+                <option value="Nursing">Nursing</option>
+                <option value="Medicine">Medicine</option>
+                <option value="Public Health">Public Health</option>
+                <option value="Psychology">Psychology</option>
+                <option value="Speech Therapy">Speech Therapy</option>
+                <option value="Social Work">Social Work</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Research Approach</label>
+            <select id="projectApproach">
+              <option value="quantitative">Quantitative (Multiple Cases / Statistics)</option>
+              <option value="qualitative">Qualitative (Single Case / Interview-Based)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Outline Type</label>
+            <select id="projectOutlineType">
+              <option value="default">Default Outline</option>
+              <option value="custom">Custom Outline</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Project Title</label>
+            <input type="text" id="projectTitle" placeholder="e.g., Effects of Vestibular Rehabilitation on Balance in Stroke Patients">
+          </div>
+          <button class="generate-btn" id="nextToOutlineBtn">
+            <i class="fas fa-arrow-right"></i> Next: Configure Outline
+          </button>
+        </div>
+
+        <!-- Step 2: Custom Outline -->
+        <div id="projectCreateStep2" style="display:none;">
+          <div class="form-group">
+            <label>Custom Chapter Outline</label>
+            <p style="font-size:0.8rem; color:var(--text-secondary); margin:0.25rem 0 0.5rem;">
+              Enter chapters and sections below. Use format: <strong>Chapter Title</strong> on its own line, 
+              then sections below it with a dash (-) prefix.
+            </p>
+            <textarea id="customOutlineInput" rows="12" 
+                      placeholder="Chapter 1: Introduction&#10;- Background of Study&#10;- Statement of Problem&#10;- Aim & Objectives&#10;&#10;Chapter 2: Literature Review&#10;- Theoretical Framework&#10;- Empirical Review&#10;&#10;Chapter 3: Methodology&#10;- Research Design&#10;- Data Collection&#10;&#10;...and so on"></textarea>
+          </div>
+          <div style="display:flex; gap:0.5rem;">
+            <button class="btn-secondary" id="backToStep1Btn">
+              <i class="fas fa-arrow-left"></i> Back
+            </button>
+            <button class="generate-btn" id="createProjectBtn">
+              <i class="fas fa-check"></i> Create Project
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Humanize Warning Modal ===== -->
+  <div class="modal humanize-warning-modal" id="humanizeWarningModal">
+    <div class="modal-content glass">
+      <div class="modal-header">
+        <h2><i class="fas fa-exclamation-triangle" style="color:#f59e0b;"></i> Academic Integrity Warning</h2>
+        <button class="modal-close" id="closeHumanizeWarning">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="warning-content">
+          <div class="warning-icon">
+            <i class="fas fa-shield-haltered"></i>
+          </div>
+          <p style="color:var(--text-primary); font-weight:500; font-size:1rem;">
+            You are about to enable <strong>AI-detection evasion</strong>.
+          </p>
+          <p style="color:var(--text-secondary); line-height:1.6;">
+            This feature will rewrite AI-generated content to appear more human-written, 
+            potentially bypassing AI detection tools like Turnitin or GPTZero.
+          </p>
+          <div class="warning-box">
+            <p style="color:#dc2626; font-weight:600; margin:0;">
+              ⚠️ WARNING: Using evasion techniques may violate your institution's academic 
+              integrity policy. The responsibility for any consequences rests 
+              <strong>solely with you</strong>, the student.
+            </p>
+          </div>
+          <p style="color:var(--text-secondary); font-size:0.85rem; margin-top:1rem;">
+            By enabling this feature, you acknowledge that you understand the risks and 
+            accept full responsibility for how the generated content is used.
+          </p>
+        </div>
+        <div style="margin-top:1.5rem; display:flex; gap:0.5rem; justify-content:flex-end;">
+          <button id="cancelHumanizeBtn" class="btn-secondary">
+            <i class="fas fa-times"></i> Cancel
+          </button>
+          <button id="confirmHumanizeBtn" class="generate-btn" style="padding:0.6rem 1.5rem; background: linear-gradient(135deg, #f59e0b, #d97706);">
+            <i class="fas fa-check"></i> I Understand, Enable Humanization
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== AI Generation Progress Modal ===== -->
+  <div class="modal ai-progress-modal" id="aiProgressModal">
+    <div class="modal-content glass">
+      <div class="modal-header">
+        <h2><i class="fas fa-magic"></i> Generating Content</h2>
+        <button class="modal-close" id="closeProgressModal">&times;</button>
+      </div>
+      <div class="modal-body text-center">
+        <div class="spinner"></div>
+        <p style="margin: 0.5rem 0; color: var(--text-primary); font-weight: 500;" id="progressStage">Initializing...</p>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem;">
+          The AI is using multi-pass generation for natural, human-like output.
+        </p>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" id="progressBarFill" style="width: 0%;"></div>
+        </div>
+        <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem;" id="progressDetail"></p>
+        <button class="btn-secondary" id="cancelGenerateBtn" style="margin-top:1rem;">
+          <i class="fas fa-times"></i> Cancel Generation
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== History Drawer (My Projects) ===== -->
+  <aside class="history-drawer" id="historyDrawer">
+    <div class="drawer-header">
+      <h3><i class='bx bx-time-five'></i> My Projects</h3>
+      <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <button id="createNewProjectFromDrawer" class="icon-btn" title="Create new project">
+          <i class="fas fa-plus"></i>
+        </button>
+        <button id="closeDrawerBtn" class="drawer-close-btn" title="Close">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+    </div>
+    <div class="history-content" id="historyList">
+      <div class="empty-state">
+        <i class='bx bx-folder-open'></i>
+        <p>Loading your projects...</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===== Toast Container ===== -->
+  <div id="toast-container"></div>
+
+  <!-- ===== Scripts ===== -->
+  <script src="js/config.js" defer></script>
+  <script src="js/plan.js" defer></script>
+  <script src="js/modal.js" defer></script>
+  <script src="js/center.js" defer></script>
+  <script src="js/invite-modal.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/history-migration.js" defer></script>
+  <script src="js/theme.js" defer></script>
+  <script src="js/tools.js" defer></script>
+  <script src="js/project.js" defer></script>
+</body>
+</html>

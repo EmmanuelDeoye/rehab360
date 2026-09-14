@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Inline script to set theme before paint -->
+    <script>
+        (function() {
+            var stored = localStorage.getItem('rehab-theme');
+            var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (stored === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else if (stored === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+            } else {
+                document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+            }
+        })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5" />
+    <title>rehablix · Export to PowerPoint</title>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js" defer>
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js" defer>
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js" defer>
+    </script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <!-- PptxGenJS -->
+    <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS@3.12.0/dist/pptxgen.bundle.js" defer>
+    </script>
+
+    <!-- Main site styles -->
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/auth.css" />
+
+    <!-- PPT Export styles (fully external) -->
+    <link rel="stylesheet" href="css/ppt.css" />
+
+    <!-- Config & Auth -->
+    <script src="js/config.js" defer>
+    </script>
+    <link rel="stylesheet" href="css/error-reporter.css">
+    <script src="js/error-reporter.js" defer></script>
+    <script src="js/modal.js" defer>
+    </script>
+    <script src="js/center.js" defer></script>
+  <script src="js/invite-modal.js" defer></script>
+  <script src="js/auth.js" defer>
+    </script>
+
+    <!-- PPT Export logic (enhanced) -->
+    <script src="js/ppt.js" defer>
+    </script>
+  <link rel="stylesheet" href="css/invite-modal.css">
+</head>
+<body>
+
+    <!-- ============================================================= -->
+    <!-- NAVBAR                                                        -->
+    <!-- ============================================================= -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-left">
+                <div class="logo-text">
+                    <span class="logo-lop">rehablix</span>
+                    <span class="logo-full">presentation export</span>
+                </div>
+            </div>
+            <div class="nav-right">
+                <a href="index.html" class="icon-btn home-icon" aria-label="Home">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M3 9L12 3L21 9L21 20H15V14H9V20H3V9Z" stroke="currentColor" fill="none"/>
+                    </svg>
+                </a>
+                <button class="icon-btn theme-toggle" id="themeToggle" aria-label="theme mode">
+                    <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+                <!-- Auth elements injected by auth.js -->
+            </div>
+        </div>
+    </nav>
+
+    <!-- ============================================================= -->
+    <!-- MAIN CONTENT                                                  -->
+    <!-- ============================================================= -->
+    <main class="ppt-main">
+        <div class="container">
+
+            <!-- Header -->
+            <header class="ppt-header">
+                <h1><i class="fas fa-file-powerpoint"></i> Export to PowerPoint</h1>
+                <a href="#" onclick="history.back(); return false;" class="back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back to Document</span>
+                </a>
+            </header>
+
+            <!-- Steps Indicator (simplified: Theme → Style → Generate) -->
+            <div class="steps-indicator">
+                <div class="step-item active" data-step="1">
+                    <div class="step-circle">
+                        <span class="step-num">1</span>
+                        <i class="fas fa-palette step-icon"></i>
+                    </div>
+                    <span class="step-label">Theme</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item" data-step="2">
+                    <div class="step-circle">
+                        <span class="step-num">2</span>
+                        <i class="fas fa-brush step-icon"></i>
+                    </div>
+                    <span class="step-label">Style</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item" data-step="3">
+                    <div class="step-circle">
+                        <span class="step-num">3</span>
+                        <i class="fas fa-magic step-icon"></i>
+                    </div>
+                    <span class="step-label">Generate</span>
+                </div>
+            </div>
+
+            <!-- ============================================================
+                 STEP 1: THEME
+                 ============================================================ -->
+            <div class="ppt-card" id="stepTheme">
+                <h2><i class="fas fa-palette"></i> Pick a theme</h2>
+                <p class="sub">Choose a color palette and visual style for your presentation.</p>
+                <div class="theme-carousel-wrapper">
+                    <div class="theme-carousel" id="themeCarousel">
+                        <!-- Themes injected by JS -->
+                    </div>
+                    <button class="carousel-nav carousel-prev" id="themePrev" aria-label="Previous theme">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="carousel-nav carousel-next" id="themeNext" aria-label="Next theme">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ============================================================
+                 STEP 2: STYLE (simplified — just art style)
+                 ============================================================ -->
+            <div class="ppt-card" id="stepStyle">
+                <h2><i class="fas fa-brush"></i> Style</h2>
+                <p class="sub">Choose the visual treatment for your slides.</p>
+                <div class="style-options" id="styleOptions">
+                    <label class="style-option selected">
+                        <input type="radio" name="artStyle" value="professional" checked /> Professional
+                    </label>
+                    <label class="style-option">
+                        <input type="radio" name="artStyle" value="modern" /> Modern
+                    </label>
+                    <label class="style-option">
+                        <input type="radio" name="artStyle" value="clean" /> Clean
+                    </label>
+                    <label class="style-option">
+                        <input type="radio" name="artStyle" value="clinical" /> Clinical
+                    </label>
+                </div>
+                <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.8rem;">
+                    <i class="fas fa-info-circle"></i> "Professional" gives a sophisticated, executive-style look.
+                </p>
+            </div>
+
+            <!-- ============================================================
+                 STEP 3: GENERATE (simplified)
+                 ============================================================ -->
+            <div class="ppt-card" id="stepGenerate">
+                <h2><i class="fas fa-magic"></i> Generate</h2>
+                <p class="sub">
+                    Your presentation will include
+                    <span class="slide-count-badge">
+                        <i class="fas fa-file-powerpoint"></i>
+                        <span id="slideCount">0</span> slides
+                    </span>
+                    based on the selected theme and style.
+                </p>
+
+                <!-- Additional instructions (optional) -->
+                <div style="margin-bottom: 1rem;">
+                    <label style="display:block; font-weight:500; margin-bottom:0.4rem; font-size:0.95rem;">
+                        <i class="fas fa-pen"></i> Additional instructions (optional)
+                    </label>
+                    <textarea class="additional-textarea" id="pptInstructions"
+                    placeholder="e.g., Include a title slide, add a summary at the end, emphasize key metrics..."></textarea>
+                </div>
+
+                <button class="generate-ppt-btn" id="generatePptBtn">
+                    <i class="fas fa-magic"></i> Generate & Download
+                </button>
+
+                <div id="generationStatus">
+                    <i class="fas fa-spinner"></i>
+                    <span id="statusText">Preparing your presentation...</span>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- ============================================================= -->
+    <!-- FOOTER                                                         -->
+    <!-- ============================================================= -->
+    <footer class="site-footer">
+        <p>© rehablix — Clinical co‑pilot for rehab professionals</p>
+    </footer>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- ============================================================= -->
+    <!-- SCRIPTS                                                       -->
+    <!-- ============================================================= -->
+    <script src="js/config.js" defer>
+    </script>
+    <link rel="stylesheet" href="css/error-reporter.css">
+    <script src="js/error-reporter.js" defer></script>
+    <script src="js/modal.js" defer>
+    </script>
+    <script src="js/center.js" defer></script>
+  <script src="js/invite-modal.js" defer></script>
+  <script src="js/auth.js" defer>
+    </script>
+    <script src="js/tools.js" defer>
+    </script>
+    <script src="js/ppt.js" defer>
+    </script>
+
+</body>
+</html>

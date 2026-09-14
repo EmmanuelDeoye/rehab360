@@ -1,0 +1,226 @@
+<!-- exam.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    (function() {
+      var stored = localStorage.getItem('rehab-theme');
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (stored === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); }
+      else if (stored === 'light') { document.documentElement.setAttribute('data-theme', 'light'); }
+      else { document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light'); }
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5, user-scalable=yes">
+  <title>Exam Simulator · rehablix</title>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/auth.css">
+  <link rel="stylesheet" href="css/exam.css">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="css/history-migration.css">
+  <link rel="stylesheet" href="css/invite-modal.css">
+</head>
+<body data-migrate-types="exam,subjects">
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-left">
+        <div class="logo-text">
+          <span class="logo-lop">rehablix</span>
+          <span class="logo-full">exam simulator</span>
+        </div>
+      </div>
+      <div class="nav-right">
+        <a href="index.html" class="icon-btn home-icon" aria-label="Home">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 9L12 3L21 9L21 20H15V14H9V20H3V9Z" stroke="currentColor" fill="none"/>
+          </svg>
+        </a>
+        <button class="icon-btn history-nav-btn" id="historyNavBtn" aria-label="History" style="display:none;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M12 8V12L15 15M12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21Z" stroke="currentColor" fill="none"/>
+          </svg>
+        </button>
+        <button class="icon-btn theme-toggle" id="themeToggle" aria-label="theme mode">
+          <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="exam-main">
+    <div class="exam-container">
+
+      <!-- ============ SETUP VIEW ============ -->
+      <section id="viewSetup" class="exam-view">
+        <div class="exam-header">
+          <div>
+            <h1>Exam <em>Simulator</em></h1>
+            <p class="exam-sub">Timed, AI-generated practice exams that target exactly what you're weak on.</p>
+          </div>
+        </div>
+
+        <div class="glass-card setup-card">
+          <div class="card-header">
+            <div class="card-header-icon"><i class="fas fa-stopwatch"></i></div>
+            <div>
+              <h2>Set Up Your Exam</h2>
+              <p class="card-subtitle">Pick a subject you've studied, or start a brand new one.</p>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Subject</label>
+            <input type="text" id="subjectInput" placeholder="e.g., Neuroanatomy, Pharmacology…" list="existingSubjectsList">
+            <datalist id="existingSubjectsList"></datalist>
+          </div>
+
+          <div id="weakTopicsBanner" class="weak-topics-banner" style="display:none;">
+            <i class="fas fa-bullseye"></i>
+            <span id="weakTopicsText"></span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="focusWeakToggle" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="form-row form-row-triple">
+            <div class="form-group">
+              <label>Questions</label>
+              <input type="number" id="questionCount" min="5" max="50" value="15">
+            </div>
+            <div class="form-group">
+              <label>Duration (minutes)</label>
+              <input type="number" id="durationInput" min="5" max="180" value="20">
+            </div>
+            <div class="form-group">
+              <label>Difficulty</label>
+              <select id="difficultySelect">
+                <option value="mixed">Mixed</option>
+                <option value="easy">Easy</option>
+                <option value="moderate">Moderate</option>
+                <option value="hard">Hard</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group" id="topicMaterialGroup" style="display:none;">
+            <label>New Subject — paste some notes to base questions on (optional but recommended)</label>
+            <textarea id="notesInput" rows="6" placeholder="Paste notes/material for this new subject…"></textarea>
+          </div>
+
+          <div class="create-actions">
+            <button class="btn-primary" id="startExamBtn"><i class="fas fa-magic"></i> Generate Exam</button>
+          </div>
+        </div>
+
+        <div id="pastAttemptsSection" style="display:none;">
+          <h3 class="section-title"><i class="fas fa-chart-line"></i> Your Progress</h3>
+          <div class="glass-card">
+            <canvas id="trendChart" height="90"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ EXAM-TAKING VIEW ============ -->
+      <section id="viewExam" class="exam-view" style="display:none;">
+        <div class="exam-taking-header">
+          <div class="exam-timer" id="examTimer"><i class="fas fa-clock"></i> 20:00</div>
+          <div class="exam-title-small" id="examTitleSmall">Exam</div>
+          <button class="btn-secondary" id="submitExamBtn">Submit Exam</button>
+        </div>
+
+        <div class="exam-body">
+          <div class="question-palette" id="questionPalette"></div>
+          <div class="glass-card question-card" id="questionCardArea"></div>
+        </div>
+      </section>
+
+      <!-- ============ RESULTS VIEW ============ -->
+      <section id="viewResults" class="exam-view" style="display:none;">
+        <div class="results-summary glass-card">
+          <div class="score-ring-wrap">
+            <div class="score-ring" id="scoreRing"><span id="scoreRingText">0%</span></div>
+          </div>
+          <div class="results-summary-text">
+            <h2 id="resultsHeadline">Exam Complete</h2>
+            <p id="resultsSubtext"></p>
+            <div class="results-actions">
+              <button class="btn-primary" id="reviewWeakBtn"><i class="fas fa-book-open"></i> Review Weak Topics in Study Buddy</button>
+              <button class="btn-secondary" id="newExamBtn"><i class="fas fa-redo"></i> New Exam</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <h3><i class="fas fa-chart-bar"></i> Score by Topic</h3>
+          <canvas id="topicChart" height="140"></canvas>
+        </div>
+
+        <div class="glass-card" id="answerReviewCard">
+          <h3><i class="fas fa-list-check"></i> Full Review</h3>
+          <div id="answerReviewList"></div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <div id="loadingOverlay" class="loading-overlay" style="display:none;">
+    <div class="loading-box">
+      <div class="loading-spinner"></div>
+      <p id="loadingText">Building your exam…</p>
+    </div>
+  </div>
+
+  <!-- Submit confirmation -->
+  <div id="confirmModal" class="modal">
+    <div class="modal-content confirm-modal-content">
+      <h3>Submit Exam?</h3>
+      <p id="confirmModalText">You still have unanswered questions.</p>
+      <div class="confirm-actions">
+        <button class="btn-secondary" id="confirmCancelBtn">Keep Working</button>
+        <button class="btn-primary" id="confirmSubmitBtn">Submit Now</button>
+      </div>
+    </div>
+  </div>
+
+  <aside class="history-drawer" id="historyDrawer">
+    <div class="drawer-header">
+      <h3><i class='bx bx-time-five'></i> Exam History</h3>
+      <button id="closeDrawerBtn" class="drawer-close-btn" aria-label="Close history"><i class='bx bx-x'></i></button>
+    </div>
+    <div class="history-content" id="historyList">
+      <div class="empty-state">
+        <i class='bx bx-folder-open'></i>
+        <p>No exam attempts yet</p>
+      </div>
+    </div>
+  </aside>
+
+  <div id="toast-container"></div>
+
+  <script src="js/config.js" defer></script>
+  <script src="js/modal.js" defer></script>
+  <script src="js/center.js" defer></script>
+  <script src="js/invite-modal.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/history-migration.js" defer></script>
+  <script src="js/theme.js" defer></script>
+  <script src="js/tools.js" defer></script>
+  <script src="js/handoff.js" defer></script>
+  <script src="js/plan.js" defer></script>
+  <script src="js/exam.js" defer></script>
+</body>
+</html>

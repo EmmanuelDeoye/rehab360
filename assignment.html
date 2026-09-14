@@ -1,0 +1,328 @@
+<!-- assignment.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Inline theme script to prevent flash -->
+  <script>
+    (function() {
+      var stored = localStorage.getItem('rehab-theme');
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (stored === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else if (stored === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+      } else {
+        document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+      }
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5, user-scalable=yes">
+  <title>Assignment Maker · rehablix</title>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js" defer></script>
+  <!-- Marked for rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/auth.css">
+  <link rel="stylesheet" href="css/assign.css">
+  <link rel="stylesheet" href="css/invite-modal.css">
+
+  <!-- ------------------------------------------------------------------
+       Embed mode (Phase 5, Lixa inline invocation) — added, not rewritten.
+       When loaded inside Lixa's inline result frame (?embed=1), this page
+       hides its own navbar (Lixa's shell already provides navigation) so
+       the tool reads as an inline result card instead of a full separate
+       page. Nothing else about this page's own JS changes. Same pattern
+       as standardized.html/format.html.
+       ------------------------------------------------------------------ -->
+  <style>
+    html.embed-mode body { background: transparent; }
+    html.embed-mode .navbar { display: none; }
+    html.embed-mode main { padding-top: 0.75rem !important; }
+  </style>
+  <script>
+    (function () {
+      if (new URLSearchParams(window.location.search).get('embed') === '1') {
+        document.documentElement.classList.add('embed-mode');
+      }
+    })();
+  </script>
+
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-left">
+        <div class="logo-text">
+          <span class="logo-lop">rehablix</span>
+          <span class="logo-full">assignment maker</span>
+        </div>
+      </div>
+      <div class="nav-right">
+        <a href="index.html" class="icon-btn home-icon" aria-label="Home">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 9L12 3L21 9L21 20H15V14H9V20H3V9Z" stroke="currentColor" fill="none"/>
+          </svg>
+        </a>
+        <button class="icon-btn history-nav-btn" id="historyNavBtn" aria-label="History" style="display:none;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M12 8V12L15 15M12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21Z" stroke="currentColor" fill="none"/>
+          </svg>
+        </button>
+        <button class="icon-btn theme-toggle" id="themeToggle" aria-label="theme mode">
+          <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="assign-main">
+    <div class="assign-container">
+      <!-- Input Card -->
+      <div class="glass-card assign-input-card">
+        <div class="card-header">
+          <div class="card-header-icon">
+            <i class="fas fa-pencil-alt"></i>
+          </div>
+          <div>
+            <h2>Assignment Maker</h2>
+            <p class="card-subtitle">Generate human‑like assignments that pass AI detection</p>
+          </div>
+        </div>
+
+        <div class="assign-form">
+          <!-- Topic with attachment icon -->
+          <div class="form-group topic-group">
+            <label>Assignment Topic / Title</label>
+            <div class="textarea-wrapper">
+              <textarea id="topicInput" rows="4" placeholder="e.g., The Role of Occupational Therapy in Stroke Rehabilitation…"></textarea>
+              <button class="attach-btn" id="attachBtn" title="Attach reference document">
+                <i class="fas fa-plus"></i>
+              </button>
+              <input type="file" id="fileInput" accept=".pdf,.docx,.txt,.doc" hidden>
+              <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden>
+            </div>
+            <div id="fileInfo" class="file-chip" style="display:none;"></div>
+          </div>
+
+          <!-- Course & Assignment Type -->
+          <div class="form-row">
+            <div class="form-group">
+              <label>Course / Subject</label>
+              <input type="text" id="courseInput" placeholder="e.g., Physiotherapy, Nursing, Medicine">
+            </div>
+            <div class="form-group">
+              <label>Assignment Type</label>
+              <select id="assignmentType">
+                <option value="classwork">Class Work / Term Paper</option>
+                <option value="clinical">Clinical Placement / Housemanship</option>
+                <option value="residency">Residency / Internship</option>
+                <option value="research">Research Proposal</option>
+                <option value="case_study">Case Study</option>
+                <option value="reflective">Reflective Journal</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Volume & Tone -->
+          <div class="form-row form-row-triple">
+            <div class="form-group">
+              <label>Length</label>
+              <div class="volume-group">
+                <input type="number" id="volumeCount" min="1" max="50" value="3" placeholder="3">
+                <select id="volumeType">
+                  <option value="pages">Pages</option>
+                  <option value="words">Words</option>
+                </select>
+              </div>
+            </div>
+            <!-- After the Tone select, before Additional Instructions -->
+<div class="form-group">
+  <label>Writing Tone</label>
+  <select id="toneSelect">
+    <option value="professional">Professional & Academic</option>
+    <option value="relaxed">Relaxed & Conversational</option>
+    <option value="imperfect">Slightly Imperfect (student‑like)</option>
+    <option value="clinical">Clinical / Ward‑round style</option>
+    <option value="creative">Creative & Engaging</option>
+  </select>
+</div>
+
+<!-- NEW: Outline toggle -->
+<div class="form-group outline-toggle-group">
+  <label class="checkbox-label">
+    <input type="checkbox" id="hasOutline">
+    <span class="checkbox-custom"></span>
+    <span>I have an outline from my teacher / supervisor</span>
+  </label>
+  <textarea id="outlineInput" rows="5" placeholder="Paste the required outline here…
+e.g.,
+1. Introduction & Background
+2. Clinical Presentation
+3. Assessment Findings
+4. Intervention Plan
+5. Conclusion & Recommendations" style="display:none;"></textarea>
+  <div class="outline-hint" id="outlineHint" style="display:none;">
+    <i class="fas fa-lightbulb"></i>
+    <span>The AI will follow this structure exactly while maintaining a natural writing style.</span>
+  </div>
+</div>
+            <div class="form-group">
+              <label>Additional Instructions</label>
+              <input type="text" id="instructionsInput" placeholder="e.g., Include references…">
+            </div>
+          </div>
+
+          <button id="generateBtn" class="generate-btn" disabled>
+            <i class="fas fa-magic"></i>
+            <span>Generate Assignment</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Results Section -->
+     
+
+      <!-- Loading state -->
+      <div class="results-loading" id="resultsLoading" style="display:none;">
+        <div class="loading-content">
+          <div class="spinner"></div>
+          <p>Crafting your assignment…</p>
+          <span>This may take a few seconds</span>
+        </div>
+      </div>
+    </div>
+    <!-- Preview Modal -->
+<div class="preview-modal" id="previewModal" style="display:none;">
+  <div class="preview-overlay"></div>
+  <div class="preview-card">
+    <div class="preview-card-header">
+      <div class="preview-icon">📝</div>
+      <h3>Assignment Ready</h3>
+      <button class="preview-close" id="previewClose">&times;</button>
+    </div>
+    <div class="preview-card-body">
+      <div class="preview-info">
+        <span class="preview-badge">✅ Generated Successfully</span>
+        <span class="preview-date" id="previewDate"></span>
+      </div>
+      <p class="preview-description">
+        Your assignment on <strong id="previewTopic"></strong> 
+        for <strong id="previewCourse"></strong> has been generated.
+      </p>
+      <div id="previewOutlineBadge" style="display:none; margin-bottom: 16px; padding: 8px 12px; background: #f0fdf4; border-radius: 8px; font-size: 0.82rem; color: #15803d;">
+        📋 Structured according to your provided outline
+      </div>
+      <div class="preview-actions">
+        <button class="preview-btn primary" id="viewFullAssignmentBtn">
+          📖 View & Edit Assignment
+        </button>
+        <button class="preview-btn secondary" id="previewCloseBtn">
+          ✕ Close
+        </button>
+      </div>
+      <div class="preview-note">
+        <small>💡 You can edit, copy, or download the assignment from the results section below.</small>
+      </div>
+    </div>
+  </div>
+</div>
+  </main>
+
+  <!-- Upload Modal -->
+  <div class="upload-modal" id="uploadModal">
+    <div class="upload-modal-overlay"></div>
+    <div class="upload-modal-card">
+      <div class="upload-modal-header">
+        <h3>Attach Reference Document</h3>
+        <button class="upload-modal-close" id="closeUploadModal">&times;</button>
+      </div>
+      <div class="upload-modal-body">
+        <div class="upload-options-grid">
+          <button class="upload-option" data-action="camera">
+            <div class="upload-option-icon">
+              <i class="fas fa-camera"></i>
+            </div>
+            <div>
+              <span class="upload-option-label">Camera</span>
+              <span class="upload-option-desc">Take a photo now</span>
+            </div>
+          </button>
+          <button class="upload-option" data-action="photo">
+            <div class="upload-option-icon">
+              <i class="fas fa-image"></i>
+            </div>
+            <div>
+              <span class="upload-option-label">Photo Gallery</span>
+              <span class="upload-option-desc">Choose from library</span>
+            </div>
+          </button>
+          <button class="upload-option" data-action="document">
+            <div class="upload-option-icon">
+              <i class="fas fa-file-alt"></i>
+            </div>
+            <div>
+              <span class="upload-option-label">Document</span>
+              <span class="upload-option-desc">PDF, DOCX, TXT files</span>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- History Drawer -->
+  <aside class="history-drawer" id="historyDrawer">
+    <div class="drawer-header">
+      <h3><i class='bx bx-time-five'></i> Assignment History</h3>
+      <button id="closeDrawerBtn" class="drawer-close-btn" aria-label="Close history"><i class='bx bx-x'></i></button>
+    </div>
+    <div class="history-search">
+      <i class="fas fa-search"></i>
+      <input type="text" id="historySearchInput" placeholder="Search assignments...">
+    </div>
+    <div class="history-content" id="historyList">
+      <div class="empty-state">
+        <i class='bx bx-folder-open'></i>
+        <p>No assignments yet</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="js/config.js" defer></script>
+  <script src="js/modal.js" defer></script>
+  <script src="js/center.js" defer></script>
+  <script src="js/invite-modal.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/theme.js" defer></script>
+  <script src="js/tools.js" defer></script>
+  <script src="js/handoff.js" defer></script>
+  <script src="js/assign.js" defer></script>
+  <script>
+    // Bring over anything the user shared with Ask AI (feature 7)
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!window.RehablixHandoff) return;
+      const data = window.RehablixHandoff.consume('assignment.html');
+      if (!data) return;
+      window.RehablixHandoff.applyTo(data, { textFieldId: 'topicInput', fileFieldId: 'fileInput' });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!-- study.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    (function() {
+      var stored = localStorage.getItem('rehab-theme');
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (stored === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); }
+      else if (stored === 'light') { document.documentElement.setAttribute('data-theme', 'light'); }
+      else { document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light'); }
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5, user-scalable=yes">
+  <title>Study Buddy · rehablix</title>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" defer></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/auth.css">
+  <link rel="stylesheet" href="css/study.css">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="css/history-migration.css">
+  <link rel="stylesheet" href="css/invite-modal.css">
+
+  <!-- ------------------------------------------------------------------
+       Embed mode (Phase 5, Lixa inline invocation) — added, not rewritten.
+       When loaded inside Lixa's inline result frame (?embed=1), this page
+       hides its own navbar (Lixa's shell already provides navigation) so
+       the tool reads as an inline result card instead of a full separate
+       page. Nothing else about this page's own JS changes. Same pattern
+       as standardized.html/format.html.
+       ------------------------------------------------------------------ -->
+  <style>
+    html.embed-mode body { background: transparent; }
+    html.embed-mode .navbar { display: none; }
+    html.embed-mode main { padding-top: 0.75rem !important; }
+  </style>
+  <script>
+    (function () {
+      if (new URLSearchParams(window.location.search).get('embed') === '1') {
+        document.documentElement.classList.add('embed-mode');
+      }
+    })();
+  </script>
+
+</head>
+<body data-migrate-types="study,subjects">
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-left">
+        <div class="logo-text">
+          <span class="logo-lop">rehablix</span>
+          <span class="logo-full">study buddy</span>
+        </div>
+      </div>
+      <div class="nav-right">
+        <a href="index.html" class="icon-btn home-icon" aria-label="Home">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 9L12 3L21 9L21 20H15V14H9V20H3V9Z" stroke="currentColor" fill="none"/>
+          </svg>
+        </a>
+        <button class="icon-btn history-nav-btn" id="historyNavBtn" aria-label="History" style="display:none;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M12 8V12L15 15M12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21Z" stroke="currentColor" fill="none"/>
+          </svg>
+        </button>
+        <button class="icon-btn theme-toggle" id="themeToggle" aria-label="theme mode">
+          <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="study-main">
+    <div class="study-container">
+
+      <section id="viewDashboard" class="study-view">
+        <div class="study-header">
+          <div>
+            <h1>Study <em>Buddy</em></h1>
+            <p class="study-sub">Turn any notes into flashcards, summaries, and quizzes — with real spaced repetition, not just a pile of cards.</p>
+          </div>
+          <button class="btn-primary" id="newSubjectBtn"><i class="fas fa-plus"></i> New Study Set</button>
+        </div>
+
+        <div class="glass-card due-banner" id="dueBanner" style="display:none;">
+          <div class="due-banner-icon"><i class="fas fa-bolt"></i></div>
+          <div class="due-banner-text"><strong id="dueCount">0</strong> card<span id="duePlural">s</span> due for review right now</div>
+          <button class="btn-primary" id="dueReviewBtn">Review Now</button>
+        </div>
+
+        <div id="subjectsGrid" class="subjects-grid">
+          <div class="empty-state">
+            <i class="fas fa-book-open"></i>
+            <p>No subjects yet — create your first study set to get started.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="viewCreate" class="study-view" style="display:none;">
+        <div class="glass-card create-card">
+          <div class="card-header">
+            <div class="card-header-icon"><i class="fas fa-layer-group"></i></div>
+            <div>
+              <h2>Create a Study Set</h2>
+              <p class="card-subtitle">Paste your notes or upload a file — the AI extracts topics, flashcards, a summary, and a quiz automatically.</p>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Subject</label>
+            <input type="text" id="subjectInput" placeholder="e.g., Neuroanatomy, Pharmacology, Orthopedic Assessment…" list="existingSubjectsList">
+            <datalist id="existingSubjectsList"></datalist>
+          </div>
+
+          <div class="form-group">
+            <label>Notes / Material</label>
+            <div class="textarea-wrapper">
+              <textarea id="notesInput" rows="8" placeholder="Paste your notes, lecture content, or textbook excerpt here…"></textarea>
+              <button class="attach-btn" id="attachBtn" title="Attach a file instead"><i class="fas fa-paperclip"></i></button>
+              <input type="file" id="fileInput" accept=".pdf,.docx,.doc,.txt,image/*" hidden>
+            </div>
+            <div id="fileInfo" class="file-chip" style="display:none;"></div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Number of Flashcards</label>
+              <input type="number" id="flashcardCount" min="5" max="40" value="15">
+            </div>
+            <div class="form-group">
+              <label>Quiz Length</label>
+              <input type="number" id="quizCount" min="3" max="20" value="8">
+            </div>
+          </div>
+
+          <div class="create-actions">
+            <button class="btn-secondary" id="cancelCreateBtn">Cancel</button>
+            <button class="btn-primary" id="generateSetBtn"><i class="fas fa-magic"></i> Generate Study Set</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="viewSubject" class="study-view" style="display:none;">
+        <div class="study-header">
+          <div>
+            <button class="back-link" id="backToDashboardBtn"><i class="fas fa-arrow-left"></i> All Subjects</button>
+            <h1 id="subjectTitle">Subject</h1>
+          </div>
+          <button class="btn-primary" id="practiceExamBtn"><i class="fas fa-stopwatch"></i> Practice Exam</button>
+        </div>
+
+        <div class="tab-bar">
+          <button class="tab-btn active" data-tab="overview">Overview</button>
+          <button class="tab-btn" data-tab="flashcards">Flashcards</button>
+          <button class="tab-btn" data-tab="quiz">Quiz</button>
+          <button class="tab-btn" data-tab="summary">Summary</button>
+        </div>
+
+        <div class="tab-pane active" data-pane="overview">
+          <div class="glass-card">
+            <h3><i class="fas fa-chart-pie"></i> Topic Mastery</h3>
+            <div id="topicMasteryList" class="topic-mastery-list"></div>
+          </div>
+          <div class="glass-card" style="margin-top:1rem;">
+            <h3><i class="fas fa-history"></i> Study Sets in this Subject</h3>
+            <div id="subjectSetsList"></div>
+          </div>
+        </div>
+
+        <div class="tab-pane" data-pane="flashcards">
+          <div class="flashcard-toolbar">
+            <div class="flashcard-stats" id="flashcardStats">0 due · 0 total</div>
+            <div style="display:flex;gap:0.5rem;">
+              <select id="flashcardFilter" class="filter-select">
+                <option value="due">Due for Review</option>
+                <option value="all">All Cards</option>
+              </select>
+              <button class="btn-secondary" id="shuffleCardsBtn"><i class="fas fa-random"></i> Shuffle</button>
+            </div>
+          </div>
+          <div id="flashcardArea" class="flashcard-area">
+            <div class="empty-state"><i class="fas fa-check-circle"></i><p>Nothing due right now — nice work!</p></div>
+          </div>
+        </div>
+
+        <div class="tab-pane" data-pane="quiz">
+          <div id="quizArea"></div>
+        </div>
+
+        <div class="tab-pane" data-pane="summary">
+          <div class="glass-card">
+            <div id="summaryContent" class="summary-content"></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <div id="loadingOverlay" class="loading-overlay" style="display:none;">
+    <div class="loading-box">
+      <div class="loading-spinner"></div>
+      <p id="loadingText">Generating your study set…</p>
+    </div>
+  </div>
+
+  <aside class="history-drawer" id="historyDrawer">
+    <div class="drawer-header">
+      <h3><i class='bx bx-time-five'></i> Study History</h3>
+      <button id="closeDrawerBtn" class="drawer-close-btn" aria-label="Close history"><i class='bx bx-x'></i></button>
+    </div>
+    <div class="history-content" id="historyList">
+      <div class="empty-state">
+        <i class='bx bx-folder-open'></i>
+        <p>No study sets yet</p>
+      </div>
+    </div>
+  </aside>
+
+  <div id="toast-container"></div>
+
+  <script src="js/config.js" defer></script>
+  <script src="js/modal.js" defer></script>
+  <script src="js/center.js" defer></script>
+  <script src="js/invite-modal.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/history-migration.js" defer></script>
+  <script src="js/theme.js" defer></script>
+  <script src="js/tools.js" defer></script>
+  <script src="js/handoff.js" defer></script>
+  <script src="js/plan.js" defer></script>
+  <script src="js/study.js" defer></script>
+</body>
+</html>

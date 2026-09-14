@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Inline script to set theme before paint -->
+  <script>
+    (function() {
+      var stored = localStorage.getItem('rehab-theme');
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-theme', stored || (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5, user-scalable=yes">
+  <title>rehablix · Audio Transcription</title>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js" defer></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/auth.css">
+  <link rel="stylesheet" href="css/audio.css">
+  <link rel="manifest" href="/manifest.json">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js');
+    }
+  </script>
+  <link rel="stylesheet" href="css/invite-modal.css">
+
+  <!-- ------------------------------------------------------------------
+       Embed mode (Phase 5, Lixa inline invocation) — added, not rewritten.
+       When loaded inside Lixa's inline result frame (?embed=1), this page
+       hides its own navbar (Lixa's shell already provides navigation) so
+       the tool reads as an inline result card instead of a full separate
+       page. Nothing else about this page's own JS changes. Same pattern
+       as standardized.html/format.html.
+       ------------------------------------------------------------------ -->
+  <style>
+    html.embed-mode body { background: transparent; }
+    html.embed-mode .navbar { display: none; }
+    html.embed-mode main { padding-top: 0.75rem !important; }
+  </style>
+  <script>
+    (function () {
+      if (new URLSearchParams(window.location.search).get('embed') === '1') {
+        document.documentElement.classList.add('embed-mode');
+      }
+    })();
+  </script>
+
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-left">
+        <div class="logo-text">
+          <span class="logo-lop">rehablix</span>
+          <span class="logo-full">Audio Transcription</span>
+        </div>
+      </div>
+      <div class="nav-right">
+        <a href="index.html" class="icon-btn home-icon" aria-label="Home">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 9L12 3L21 9L21 20H15V14H9V20H3V9Z" stroke="currentColor" fill="none"/>
+          </svg>
+        </a>
+        <button class="icon-btn" id="toggleHistoryBtn" aria-label="history" style="display:none;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M12 8V12L15 15M12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21Z" stroke="currentColor" fill="none"/>
+          </svg>
+        </button>
+        <button class="icon-btn theme-toggle" id="themeToggle" aria-label="theme mode">
+          <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+        <!-- Auth elements injected by modal.js -->
+      </div>
+    </div>
+  </nav>
+
+  <main class="audio-main">
+    <div class="container">
+
+      <!-- Resume banner: shown if an interrupted local session is found -->
+      <div id="resumeBanner" class="resume-banner" style="display:none;">
+        <div class="resume-banner-text">
+          <i class="fas fa-triangle-exclamation"></i>
+          <span id="resumeBannerText">We found an unfinished recording.</span>
+        </div>
+        <div class="resume-banner-actions">
+          <button class="btn-secondary" id="discardSessionBtn">Discard</button>
+          <button class="btn-primary" id="resumeSessionBtn">Continue</button>
+        </div>
+      </div>
+
+      <!-- Progress Steps -->
+      <div class="audio-progress">
+        <div class="progress-step active" data-step="1"><span class="step-number">1</span><span class="step-label">Setup</span></div>
+        <div class="progress-step" data-step="2"><span class="step-number">2</span><span class="step-label">Record / Upload</span></div>
+        <div class="progress-step" data-step="3"><span class="step-number">3</span><span class="step-label">Transcript</span></div>
+      </div>
+
+      <!-- Stage 1: Setup -->
+      <div id="stageSetup" class="stage-container active">
+        <div class="glass-card">
+          <div class="card-header">
+            <h3><i class="fas fa-headphones-simple"></i> New Transcription</h3>
+            <p>Set up your session, then record live or upload a file.</p>
+          </div>
+
+          <div class="form-group">
+            <label for="sessionTitle">Session Title (optional)</label>
+            <input type="text" id="sessionTitle" placeholder="e.g. Jane Doe – Initial Assessment">
+          </div>
+
+          <div class="form-group">
+            <label for="sessionType">Session Type</label>
+            <select id="sessionType">
+              <option value="assessment">Assessment</option>
+              <option value="therapy">Therapy Session</option>
+              <option value="class">Class Activity</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="professionalType">Professional Involved</label>
+            <select id="professionalType">
+              <option value="occupational_therapist">Occupational Therapist</option>
+              <option value="physiotherapist">Physiotherapist</option>
+              <option value="speech_language_therapist">Speech-Language Therapist</option>
+              <option value="psychologist">Psychologist</option>
+              <option value="psychiatrist">Psychiatrist</option>
+              <option value="rehab_nurse">Rehabilitation Nurse</option>
+              <option value="general_clinician">General / Other Clinician</option>
+            </select>
+          </div>
+
+          <div class="source-mode-tabs" id="sourceModeTabs">
+            <button type="button" class="source-mode-tab active" data-source="live" id="sourceModeLive">
+              <i class="fas fa-microphone"></i> Record Live
+            </button>
+            <button type="button" class="source-mode-tab" data-source="upload" id="sourceModeUpload">
+              <i class="fas fa-file-arrow-up"></i> Upload Audio
+            </button>
+          </div>
+
+          <!-- Live record start -->
+          <div id="liveSetupPanel">
+            <p class="settings-hint">
+              Recording keeps going even if you switch tabs or minimize the browser, and your progress is
+              saved on this device as you go — so a reload or crash won't lose your session.
+            </p>
+            <div class="record-start-wrap">
+              <button class="record-start-btn" id="startSetupBtn" aria-label="Start Recording" title="Start Recording">
+                <i class="fas fa-microphone"></i>
+              </button>
+              <span class="record-start-caption">Tap to start recording</span>
+            </div>
+          </div>
+
+          <!-- Upload panel -->
+          <div id="uploadSetupPanel" style="display:none;">
+            <div class="upload-dropzone" id="uploadDropzone">
+              <i class="fas fa-file-audio"></i>
+              <p>Tap to choose an audio file, or drag one here</p>
+              <small>MP3, WAV, M4A, WEBM — up to 25MB</small>
+              <input type="file" id="audioFileInput" accept="audio/*" hidden>
+            </div>
+            <div id="uploadFileInfo" class="upload-file-info" style="display:none;"></div>
+            <button class="btn-primary btn-large" id="transcribeUploadBtn" disabled><i class="fas fa-wand-magic-sparkles"></i> Transcribe File</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stage 2: Recording -->
+      <div id="stageRecord" class="stage-container">
+        <div class="glass-card">
+          <div class="record-hero">
+            <div class="record-hero-ring" id="recIndicator">
+              <span class="record-pulse"></span>
+              <span class="record-pulse delay"></span>
+              <div class="record-hero-dot"><i class="fas fa-microphone"></i></div>
+            </div>
+            <div class="rec-timer" id="recTimer">00:00</div>
+            <div class="rec-status-text" id="recStatusText">Recording</div>
+          </div>
+
+          <canvas id="waveformCanvas" class="waveform-canvas" height="80"></canvas>
+
+          <div class="recording-controls">
+            <button class="control-circle-btn control-secondary" id="pauseResumeBtn" aria-label="Pause recording" title="Pause">
+              <i class="fas fa-pause"></i>
+            </button>
+            <button class="control-circle-btn control-stop" id="stopRecordingBtn" aria-label="Stop and transcribe" title="Stop &amp; Transcribe">
+              <i class="fas fa-stop"></i>
+            </button>
+          </div>
+          <p class="recording-controls-hint">Tap stop when you're finished — transcription starts right away.</p>
+
+          <div class="live-transcript-feed">
+            <h4><i class="fas fa-closed-captioning"></i> Live Transcript</h4>
+            <div id="liveTranscriptText" class="live-transcript-text">
+              <span class="transcript-placeholder">Your words will appear here as each segment finishes transcribing…</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stage: Processing -->
+      <div id="stageProcessing" class="stage-container">
+        <div class="glass-card processing-card">
+          <div class="processing-spinner"></div>
+          <h3 id="processingTitle">Transcribing your audio…</h3>
+          <p id="processingStatus">Starting…</p>
+          <div class="processing-progress-bar"><div id="processingProgressFill" class="processing-progress-fill"></div></div>
+        </div>
+      </div>
+
+      <!-- Stage 3: Result -->
+      <div id="stageResult" class="stage-container">
+        <div class="glass-card">
+          <div class="result-header-row">
+            <div>
+              <h3 id="resultTitle">Transcript</h3>
+              <p id="resultMeta" class="result-meta"></p>
+            </div>
+            <div class="result-header-actions">
+              <button class="btn-mini" id="newSessionBtn"><i class="fas fa-plus"></i> New</button>
+            </div>
+          </div>
+
+          <div class="transcript-view-toggle">
+            <button type="button" class="transcript-toggle-btn active" data-view="cleaned" id="viewCleanedBtn">Narrative</button>
+            <button type="button" class="transcript-toggle-btn" data-view="raw" id="viewRawBtn">Raw</button>
+          </div>
+
+          <textarea id="transcriptTextarea" class="transcript-textarea" spellcheck="true"></textarea>
+
+          <div class="result-actions">
+            <button class="btn-secondary" id="copyTranscriptBtn" title="Copy"><i class="fas fa-copy"></i> <span>Copy</span></button>
+            <button class="btn-secondary" id="downloadTranscriptBtn" title="Download .txt"><i class="fas fa-download"></i> <span>Download .txt</span></button>
+            <button class="btn-secondary" id="downloadAudioBtn" title="Download Audio" style="display:none;"><i class="fas fa-file-audio"></i> <span>Download Audio</span></button>
+            <button class="btn-primary" id="saveTranscriptBtn" title="Save"><i class="fas fa-floppy-disk"></i> <span>Save</span></button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- History Drawer -->
+  <aside class="history-drawer" id="historyDrawer">
+    <div class="drawer-header">
+      <h3><i class='bx bx-time-five'></i> Transcription History</h3>
+      <button id="closeDrawerBtn" class="drawer-close-btn" aria-label="Close history"><i class='bx bx-x'></i></button>
+    </div>
+    <div class="history-content" id="historyList">
+      <div class="empty-state">
+        <i class='bx bx-folder-open'></i>
+        <p>No history found</p>
+      </div>
+    </div>
+  </aside>
+
+  <div id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="js/config.js" defer></script>
+  <link rel="stylesheet" href="css/error-reporter.css">
+  <script src="js/error-reporter.js" defer></script>
+  <script src="js/modal.js" defer></script>
+  <script src="js/center.js" defer></script>
+  <script src="js/invite-modal.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/tools.js" defer></script>
+  <script src="js/theme.js" defer></script>
+  <script src="js/audio.js" defer></script>
+</body>
+</html>

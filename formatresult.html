@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>  
+  <!-- Inline script to set theme before paint -->
+  <script>
+    (function() {
+      var stored = localStorage.getItem('rehab-theme');
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (stored === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else if (stored === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+      } else {
+        // No preference saved or set to "system" → follow device setting
+        document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+      }
+    })();
+  </script>
+  <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5, user-scalable=yes">
+  <title>rehablix · Assessment Result</title>
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/auth.css">
+  <link rel="stylesheet" href="css/format.css">
+  <link rel="stylesheet" href="css/formatresult.css">
+  
+  <!-- TinyMCE Rich Text Editor -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/skins/ui/oxide/skin.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/tinymce.min.js" defer></script>
+  
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js" defer></script>
+  
+  <!-- FileSaver.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" defer></script>
+  <link rel="stylesheet" href="css/invite-modal.css">
+</head>
+<body>
+  <nav class="navbar no-print">
+    <div class="nav-container">
+      <a href="format.html" class="nav-back" aria-label="Back" style="display:none;">←</a>
+      <div class="nav-left">
+        <div class="logo-text">
+          <span class="logo-lop">rehablix</span>
+          <span class="logo-full">format result</span>
+        </div>
+      </div>
+      <div class="nav-right">
+        <a href="index.html" class="icon-btn home-icon" aria-label="Home">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 9L12 3L21 9L21 20H15V14H9V20H3V9Z" stroke="currentColor" fill="none"/>
+          </svg>
+        </a>
+        
+        <button class="icon-btn theme-toggle" id="themeToggle" aria-label="theme mode">
+          <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+        <!-- Auth elements will be injected by modal.js -->
+      </div>
+    </div>
+  </nav>
+
+  <main class="result-container">
+    <div class="print-header">
+      <h2>rehablix Assessment</h2>
+      <p>Generated: <span id="printDate"></span></p>
+    </div>
+    
+    <div class="result-header no-print">
+      <div>
+        <h1 id="resultTitle">Assessment Result</h1>
+        <div class="result-badges" id="resultBadges">
+          <span class="badge" id="patientNameBadge">👤 Loading...</span>
+          <span class="badge" id="assessmentTypeBadge"></span>
+          <span class="badge" id="departmentBadge"></span>
+        </div>
+      </div>
+      
+      <!-- Owner-only toggle -->
+      <div id="publicToggleContainer" style="display: none;" class="public-toggle no-print">
+        <label class="switch-label">
+          <span>🔓 Make public</span>
+          <div class="switch">
+            <input type="checkbox" id="publicToggle">
+            <span class="slider round"></span>
+          </div>
+        </label>
+      </div>
+      
+      <div class="result-actions">
+        <button class="action-btn" id="shareBtn">
+          <span>🔗</span> Share
+        </button>
+        <button class="action-btn" id="copyBtn">
+          <span>📋</span> Copy
+        </button>
+        <button class="action-btn" id="saveBtn">
+          <span>💾</span> Save
+        </button>
+        <button class="action-btn" id="downloadBtn">
+          <span>⬇️</span> Download
+        </button>
+        <button class="action-btn primary" id="printBtn">
+          <span>🖨️</span> Print / PDF
+        </button>
+      </div>
+    </div>
+    
+    <!-- Rich Text Editor Container -->
+    <div class="editor-container no-print">
+      <textarea id="editor"></textarea>
+    </div>
+    
+    <!-- Fallback read-only view -->
+    <div id="assessmentOutput" style="display: none;"></div>
+    
+    <div class="result-navigation no-print" style="margin-top: 2rem; text-align: center;">
+      <a href="format.html" class="btn-secondary" style="display: inline-block; padding: 0.8rem 2rem;">← Back to Generator</a>
+    </div>
+  </main>
+
+  <!-- Download Modal -->
+  <div id="downloadModal" class="modal download-modal">
+    <div class="modal-content glass download-content">
+      <h3>Choose Download Format</h3>
+      <div class="download-options">
+        <button class="btn-primary" id="downloadWordOption">📃 Word Document (.doc)</button>
+        <button class="btn-primary" id="downloadHtmlOption">🌐 HTML Document</button>
+        <button class="btn-primary" id="downloadTxtOption">📝 Plain Text (.txt)</button>
+        <button class="btn-secondary" id="cancelDownload">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Share Modal -->
+  <div id="shareModal" class="modal share-modal">
+    <div class="modal-content glass">
+      <h3 style="text-align: center; margin-bottom: 1rem;">Share Assessment</h3>
+      <div class="share-link-container">
+        <input type="text" id="shareLink" readonly value="">
+        <button id="copyShareLink">Copy</button>
+      </div>
+      <div class="share-note">
+        Anyone with this link can view this assessment
+      </div>
+      <button class="btn-secondary" id="closeShareModal" style="margin-top: 1.5rem; width: 100%;">Close</button>
+    </div>
+  </div>
+
+  <!-- Save Confirmation Modal -->
+  <div id="saveConfirmModal" class="modal save-confirm-modal">
+    <div class="modal-content glass">
+      <div class="success-icon">✓</div>
+      <h3>Changes Saved!</h3>
+      <p>Your assessment has been updated in your history.</p>
+      <button class="btn-primary" id="closeSaveModal" style="margin-top: 1rem;">OK</button>
+    </div>
+  </div>
+
+  <footer class="site-footer no-print">
+    <p>© rehablix — AI tools for rehabilitation</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/config.js" defer></script>
+  <script src="js/modal.js" defer></script>        <!-- Creates auth modal, toast, etc. -->
+  <script src="js/center.js" defer></script>
+  <script src="js/invite-modal.js" defer></script>
+  <script src="js/auth.js" defer></script>         <!-- Auth logic -->
+  <script src="js/tools.js" defer></script>
+  <script src="js/formatresult.js" defer></script> <!-- Format result logic -->
+</body>
+</html>
