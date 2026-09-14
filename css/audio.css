@@ -1,0 +1,890 @@
+/* css/audio.css - Audio Transcription app */
+:root {
+  --audio-accent: var(--accent);
+  --audio-accent-soft: var(--accent-soft);
+  --radius-lg: 1.25rem;
+  --radius-md: 0.9rem;
+}
+
+.audio-main {
+  padding: 1.75rem 1rem 3rem;
+  min-height: calc(100vh - 140px);
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* ---------- Resume banner ---------- */
+.resume-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-md);
+  background: rgba(234, 179, 8, 0.12);
+  border: 1px solid rgba(234, 179, 8, 0.4);
+  margin-bottom: 1.5rem;
+}
+
+.resume-banner-text {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.88rem;
+  color: #b45309;
+}
+
+.resume-banner-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* ---------- Progress Steps ---------- */
+.audio-progress {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2.25rem;
+  margin-bottom: 2.25rem;
+  flex-wrap: wrap;
+}
+
+.audio-progress::before {
+  content: '';
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  width: min(320px, 60%);
+  height: 2px;
+  background: var(--border-light);
+  transform: translateX(-50%);
+  z-index: 0;
+}
+
+.progress-step {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  opacity: 0.45;
+  transition: opacity 0.2s ease;
+}
+
+.progress-step.active,
+.progress-step.completed {
+  opacity: 1;
+}
+
+.progress-step .step-number {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.progress-step.active .step-number {
+  border-color: var(--audio-accent);
+  background: var(--audio-accent-soft);
+  color: var(--audio-accent);
+  box-shadow: 0 0 0 4px var(--audio-accent-soft);
+}
+
+.progress-step.completed .step-number {
+  border-color: var(--audio-accent);
+  background: var(--audio-accent);
+  color: #fff;
+}
+
+.progress-step .step-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ---------- Stage containers ---------- */
+.stage-container {
+  display: none;
+  animation: audioFadeSlide 0.35s ease;
+  padding: 0px;
+}
+
+.stage-container.active {
+  display: block;
+}
+
+@keyframes audioFadeSlide {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.glass-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 1.85rem;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.card-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+
+.card-header h3 i {
+  width: 34px;
+  height: 34px;
+  border-radius: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--audio-accent-soft);
+  color: var(--audio-accent);
+  font-size: 0.95rem;
+}
+
+.card-header p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.4rem;
+}
+
+/* ---------- Form elements ---------- */
+.form-group {
+  margin-bottom: 1.15rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-secondary);
+  margin-bottom: 0.45rem;
+}
+
+.form-group input[type="text"],
+.form-group select {
+  width: 100%;
+  padding: 0.75rem 0.95rem;
+  border-radius: 0.7rem;
+  border: 1px solid var(--border-light);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--audio-accent);
+  box-shadow: 0 0 0 3px var(--audio-accent-soft);
+}
+
+.settings-hint {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 1.4rem;
+}
+
+/* ---------- Source mode tabs ---------- */
+.source-mode-tabs {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.3rem;
+  border-radius: 999px;
+  background: var(--audio-accent-soft);
+  margin-bottom: 1.4rem;
+}
+
+.source-mode-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.65rem 0.75rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.source-mode-tab.active {
+  background: var(--audio-accent);
+  color: #fff;
+  box-shadow: 0 4px 14px var(--audio-accent-soft);
+}
+
+/* ---------- Buttons ---------- */
+.btn-primary,
+.btn-secondary,
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.75rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-primary {
+  background: var(--audio-accent);
+  color: #fff;
+}
+
+.btn-primary:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+  border-color: var(--audio-accent);
+  color: var(--audio-accent);
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: #fff;
+}
+
+.btn-danger:hover {
+  filter: brightness(1.08);
+}
+
+.btn-large {
+  width: 100%;
+  padding: 1rem 1.2rem;
+  font-size: 0.95rem;
+}
+
+.btn-mini {
+  font-size: 0.75rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.55rem;
+  border: 1px solid var(--border-light);
+  background: var(--surface);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-mini:hover {
+  border-color: var(--audio-accent);
+  color: var(--audio-accent);
+}
+
+/* ---------- Upload panel ---------- */
+.upload-dropzone {
+  border: 2px dashed var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 2.25rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 1.1rem;
+  color: var(--text-secondary);
+}
+
+.upload-dropzone:hover,
+.upload-dropzone.dragover {
+  border-color: var(--audio-accent);
+  background: var(--audio-accent-soft);
+  color: var(--audio-accent);
+}
+
+.upload-dropzone i {
+  font-size: 2.1rem;
+  margin-bottom: 0.6rem;
+  display: block;
+}
+
+.upload-dropzone p {
+  font-size: 0.9rem;
+  margin-bottom: 0.2rem;
+}
+
+.upload-dropzone small {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.upload-file-info {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem 0.95rem;
+  border-radius: 0.65rem;
+  background: var(--audio-accent-soft);
+  font-size: 0.85rem;
+  margin-bottom: 1.1rem;
+}
+
+/* ---------- Recording screen: circular hero + controls ---------- */
+
+/* Circular red "start recording" button, shown in the Setup stage */
+.record-start-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.5rem 0 0.25rem;
+}
+
+.record-start-btn {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(145deg, #f87171, #dc2626);
+  color: #fff;
+  font-size: 1.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 26px rgba(220, 38, 38, 0.45);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.record-start-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 14px 32px rgba(220, 38, 38, 0.55);
+  filter: brightness(1.05);
+}
+
+.record-start-btn:active {
+  transform: scale(0.96);
+}
+
+.record-start-caption {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+/* Pulsing hero indicator on the recording stage */
+.record-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0 1.5rem;
+}
+
+.record-hero-ring {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.35rem;
+}
+
+.record-hero-dot {
+  position: relative;
+  z-index: 2;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #f87171, #dc2626);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  box-shadow: 0 8px 20px rgba(220, 38, 38, 0.45);
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.record-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.35);
+  animation: record-pulse-ring 1.8s ease-out infinite;
+}
+
+.record-pulse.delay {
+  animation-delay: 0.9s;
+}
+
+@keyframes record-pulse-ring {
+  0% { transform: scale(0.7); opacity: 0.7; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+
+.record-hero-ring.paused .record-hero-dot {
+  background: linear-gradient(145deg, #facc15, #ca8a04);
+  box-shadow: 0 8px 20px rgba(202, 138, 4, 0.4);
+}
+
+.record-hero-ring.paused .record-pulse {
+  animation: none;
+  opacity: 0;
+}
+
+.rec-timer {
+  font-variant-numeric: tabular-nums;
+  font-size: 1.9rem;
+  font-weight: 700;
+}
+
+.rec-status-text {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.waveform-canvas {
+  width: 100%;
+  height: 80px;
+  border-radius: 0.75rem;
+  background: var(--audio-accent-soft);
+  margin-bottom: 1.4rem;
+  display: block;
+}
+
+/* Circular pause / stop controls */
+.recording-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.control-circle-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.control-secondary {
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  color: var(--text-primary);
+}
+
+.control-secondary:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+
+.control-stop {
+  width: 68px;
+  height: 68px;
+  font-size: 1.3rem;
+  background: linear-gradient(145deg, #f87171, #dc2626);
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(220, 38, 38, 0.4);
+}
+
+.control-stop:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 14px 28px rgba(220, 38, 38, 0.5);
+  filter: brightness(1.05);
+}
+
+.control-stop:active,
+.control-secondary:active {
+  transform: scale(0.95);
+}
+
+.recording-controls-hint {
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.6rem;
+}
+
+.live-transcript-feed h4 {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 0.65rem;
+  color: var(--text-secondary);
+}
+
+.live-transcript-text {
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 1.1rem;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  font-size: 0.88rem;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.transcript-placeholder {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.transcript-segment {
+  animation: audioFadeSlide 0.3s ease;
+}
+
+.transcript-interim {
+  color: var(--text-secondary);
+  font-style: italic;
+  opacity: 0.75;
+}
+
+/* ---------- Processing ---------- */
+.processing-card {
+  text-align: center;
+  padding: 3.25rem 1.75rem;
+}
+
+.processing-spinner {
+  width: 46px;
+  height: 46px;
+  border: 4px solid var(--audio-accent-soft);
+  border-top-color: var(--audio-accent);
+  border-radius: 50%;
+  margin: 0 auto 1.4rem;
+  animation: audio-spin 0.8s linear infinite;
+}
+
+@keyframes audio-spin {
+  to { transform: rotate(360deg); }
+}
+
+.processing-card h3 {
+  font-size: 1.05rem;
+  margin-bottom: 0.4rem;
+}
+
+.processing-card p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.4rem;
+}
+
+.processing-progress-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--audio-accent-soft);
+  overflow: hidden;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.processing-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--audio-accent);
+  transition: width 0.3s ease;
+}
+
+/* ---------- Result screen ---------- */
+.result-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+.result-header-row h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+}
+
+.result-meta {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.transcript-view-toggle {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.9rem;
+}
+
+.transcript-toggle-btn {
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-light);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.transcript-toggle-btn.active {
+  background: var(--audio-accent);
+  border-color: var(--audio-accent);
+  color: #fff;
+}
+
+.transcript-textarea {
+  width: 100%;
+  min-height: 340px;
+  padding: 1.1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  line-height: 1.7;
+  resize: vertical;
+  margin-bottom: 1.2rem;
+}
+
+.transcript-textarea:focus {
+  outline: none;
+  border-color: var(--audio-accent);
+  box-shadow: 0 0 0 3px var(--audio-accent-soft);
+}
+
+.result-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: nowrap;
+}
+
+.result-actions button {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* ---------- History entries (drawer content) ---------- */
+.audio-history-item {
+  position: relative;
+  padding: 0.9rem 2.6rem 0.9rem 1rem;
+  border-radius: 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  margin-bottom: 0.65rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.audio-history-item:hover {
+  border-color: var(--audio-accent);
+  transform: translateX(-3px);
+}
+
+.audio-history-item .ahi-title {
+  font-weight: 600;
+  font-size: 0.88rem;
+  margin-bottom: 0.2rem;
+  padding-right: 0.25rem;
+}
+
+.audio-history-item .ahi-meta {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.ahi-delete-btn {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.6rem;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  transition: all 0.15s ease;
+}
+
+.ahi-delete-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* ---------- History drawer ----------
+   Slides in from the left on mobile (thumb-reachable, matches most tool
+   pages) and from the right on desktop (keeps it out of the way of the
+   nav/back button and lands under the cursor, near the history icon). */
+.history-drawer {
+  position: fixed;
+  top: 0;
+  left: -400px;
+  width: 400px;
+  max-width: 88vw;
+  height: 100vh;
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid var(--border-light);
+  z-index: 1000;
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-hover);
+}
+
+.history-drawer.active {
+  left: 0;
+}
+
+@media (min-width: 769px) {
+  .history-drawer {
+    left: auto;
+    right: -400px;
+    border-right: none;
+    border-left: 1px solid var(--border-light);
+  }
+  .history-drawer.active {
+    left: auto;
+    right: 0;
+  }
+}
+
+.drawer-header {
+  padding: 1.4rem 1.5rem;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.drawer-header h3 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.drawer-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 0.3rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.drawer-close-btn:hover {
+  background: var(--audio-accent-soft);
+  color: var(--audio-accent);
+}
+
+.history-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.2rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-secondary);
+}
+
+.empty-state i {
+  font-size: 2.2rem;
+  margin-bottom: 0.7rem;
+  display: block;
+  color: var(--border-light);
+}
+
+@media (max-width: 480px) {
+  .history-drawer { width: 320px; }
+}
+
+@media (max-width: 560px) {
+  .result-actions button span {
+    display: none;
+  }
+  .result-actions button i {
+    margin: 0;
+  }
+  .result-actions button {
+    padding: 0.5rem 0.5rem;
+    border-radius: 50px;
+    width: auto;
+    height: auto;
+  }
+  
+  .glass-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+    }
+}

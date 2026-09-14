@@ -1,0 +1,1141 @@
+/* css/gait.css - Complete updated file */
+:root {
+  --gait-accent: #009688;
+  --gait-accent-soft: #00968820;
+  --card-bg: rgba(255,255,255,0.75);
+  --scan-line-color: rgba(0,150,136,0.6);
+}
+
+[data-theme="dark"] {
+  --card-bg: rgba(30,42,50,0.8);
+  --scan-line-color: rgba(20,184,166,0.7);
+}
+
+.gait-main { 
+  padding: 1.5rem 1rem 2rem; 
+  min-height: calc(100vh - 140px); 
+}
+
+.container { 
+  max-width: 1200px; 
+  margin: 0 auto; 
+}
+
+/* ===== Progress Steps ===== */
+.gait-progress {
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  margin-bottom: 2rem; 
+  flex-wrap: wrap;
+}
+
+.step { 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  gap: 0.5rem; 
+  opacity: 0.4; 
+  transition: 0.3s; 
+}
+
+.step.active { 
+  opacity: 1; 
+}
+
+.step.completed .step-number { 
+  background: var(--gait-accent); 
+  color: white; 
+  border-color: var(--gait-accent); 
+}
+
+.step-number {
+  width: 42px; 
+  height: 42px; 
+  border-radius: 50%; 
+  background: var(--surface);
+  border: 2px solid var(--border-light); 
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  font-weight: 600; 
+  font-size: 1.1rem;
+}
+
+.step.active .step-number { 
+  border-color: var(--gait-accent); 
+  background: var(--gait-accent-soft); 
+  color: var(--gait-accent); 
+}
+
+.step-label { 
+  font-size: 0.9rem; 
+  font-weight: 500; 
+  color: var(--text-secondary); 
+  text-transform: uppercase; 
+}
+
+.step-connector { 
+  width: 80px; 
+  height: 2px; 
+  background: var(--border-light); 
+  margin: 0 1rem; 
+}
+
+/* ===== Stage containers ===== */
+.stage-container { 
+  display: none; 
+  animation: fadeSlide 0.4s; 
+}
+
+.stage-container.active { 
+  display: block; 
+}
+
+@keyframes fadeSlide { 
+  from { opacity: 0; transform: translateY(10px); } 
+  to { opacity: 1; transform: translateY(0); } 
+}
+
+/* ===== Glass card ===== */
+.glass-card {
+  background: var(--card-bg); 
+  backdrop-filter: blur(12px); 
+  border: 1px solid var(--border-light);
+  border-radius: 1.5rem; 
+  padding: 2rem; 
+  box-shadow: var(--shadow-sm);
+}
+
+.record-card.full-width { 
+  padding: 1.5rem; 
+}
+
+.record-header {
+  margin-bottom: 0.5rem;
+}
+
+.record-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.record-header p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+/* ===== Two-column layout for recording stage ===== */
+.record-layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.camera-column {
+  flex: 1 1 50%;
+  min-width: 300px;
+}
+
+.controls-column {
+  flex: 1 1 35%;
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+/* ===== Camera view ===== */
+.camera-view {
+  position: relative; 
+  background: #00000015; 
+  border-radius: 1rem; 
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+}
+
+/* Taller camera view – portrait orientation for full‑body capture */
+.camera-view.tall {
+  aspect-ratio: 9 / 16;
+  max-height: 70vh;
+  width: 100%;
+  border-radius: 1.2rem;
+}
+
+/* Keep large as fallback */
+.camera-view.large { 
+  aspect-ratio: 16 / 9; 
+  max-height: 65vh; 
+}
+
+.camera-view video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+#cameraPreview { 
+  width: 100%; 
+  height: 100%; 
+  object-fit: cover; 
+  display: block; 
+}
+
+.camera-placeholder {
+  position: absolute; 
+  top: 0; 
+  left: 0; 
+  right: 0; 
+  bottom: 0; 
+  display: flex; 
+  flex-direction: column;
+  align-items: center; 
+  justify-content: center; 
+  background: var(--surface); 
+  color: var(--text-secondary);
+}
+
+.camera-placeholder i {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.6;
+}
+
+/* ===== Scanning overlay ===== */
+.scan-overlay { 
+  position: absolute; 
+  top: 0; 
+  left: 0; 
+  right: 0; 
+  bottom: 0; 
+  pointer-events: none; 
+  overflow: hidden; 
+  z-index: 10; 
+}
+
+.scan-line {
+  position: absolute; 
+  left: 0; 
+  width: 100%; 
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--scan-line-color), transparent);
+  box-shadow: 0 0 20px var(--scan-line-color); 
+  animation: scanMove 3.5s infinite;
+}
+
+@keyframes scanMove { 
+  0% { top: -5%; opacity: 0.3; } 
+  50% { top: 100%; opacity: 1; } 
+  100% { top: -5%; opacity: 0.3; } 
+}
+
+/* ===== Controls ===== */
+.record-controls { 
+  display: flex; 
+  gap: 1rem; 
+  justify-content: center; 
+  margin: 0;
+}
+
+.btn-primary, .btn-record, .btn-secondary {
+  padding: 0.9rem 2rem; 
+  border-radius: 3rem; 
+  font-weight: 600; 
+  cursor: pointer; 
+  transition: 0.2s;
+  display: inline-flex; 
+  align-items: center; 
+  gap: 0.5rem; 
+  border: none;
+}
+
+.btn-primary { 
+  background: var(--gait-accent); 
+  color: white; 
+}
+
+.btn-primary:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px var(--gait-accent-soft);
+}
+
+.btn-primary:disabled { 
+  opacity: 0.5; 
+  cursor: not-allowed; 
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-record { 
+  background: #dc2626; 
+  color: white; 
+}
+
+.btn-record:hover {
+  background: #b91c1c;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(220, 38, 38, 0.3);
+}
+
+.btn-record.recording { 
+  background: #991b1b; 
+  animation: pulse 1.5s infinite; 
+}
+
+.btn-secondary { 
+  background: var(--surface); 
+  border: 1px solid var(--border-light); 
+  color: var(--text-primary); 
+}
+
+.btn-secondary:hover {
+  border-color: var(--gait-accent);
+  background: var(--gait-accent-soft);
+  transform: translateY(-2px);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* ===== Recording timer ===== */
+.recording-timer {
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  gap: 1.5rem;
+  background: var(--surface); 
+  padding: 0.8rem 2rem; 
+  border-radius: 3rem; 
+  margin: 0;
+  border: 1px solid var(--border-light);
+}
+
+.recording-indicator { 
+  color: #dc2626; 
+  font-weight: 600; 
+  display: flex; 
+  align-items: center; 
+  gap: 0.5rem; 
+}
+
+.recording-indicator i { 
+  font-size: 0.8rem; 
+  animation: blink 1s infinite; 
+}
+
+@keyframes blink { 
+  0%, 100% { opacity: 1; } 
+  50% { opacity: 0.3; } 
+}
+
+#timerDisplay {
+  font-family: monospace;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+/* ===== Video preview ===== */
+.video-preview { 
+  margin: 0;
+  padding: 0;
+  border-top: none;
+}
+
+.video-preview h4 {
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+}
+
+.video-preview video {
+  width: 100%;
+  max-height: 180px;
+  border-radius: 0.8rem;
+  border: 1px solid var(--border-light);
+}
+
+.preview-actions { 
+  display: flex; 
+  gap: 1rem; 
+  margin-top: 1rem; 
+  flex-wrap: wrap;
+}
+
+.preview-actions .btn-secondary,
+.preview-actions .btn-primary {
+  flex: 1;
+  justify-content: center;
+}
+
+/* ===== Gait parameters ===== */
+.gait-params { 
+  margin-top: 0; 
+}
+
+.gait-params label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.joint-select, .gait-notes-input {
+  width: 100%; 
+  padding: 0.8rem 1rem; 
+  border-radius: 3rem; 
+  border: 1px solid var(--border-light);
+  background: var(--surface); 
+  color: var(--text-primary); 
+  font-size: 1rem; 
+  margin-top: 0.5rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.joint-select:focus, .gait-notes-input:focus {
+  outline: none;
+  border-color: var(--gait-accent);
+  box-shadow: 0 0 0 3px var(--gait-accent-soft);
+}
+
+.gait-notes-input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+/* ===== Analysis stage ===== */
+.analysis-card { 
+  text-align: center; 
+  padding: 3rem; 
+}
+
+.loading-container { 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  gap: 1.5rem; 
+}
+
+.gait-spinner {
+  width: 70px; 
+  height: 70px; 
+  border: 4px solid var(--border-light); 
+  border-top-color: var(--gait-accent);
+  border-radius: 50%; 
+  animation: spin 1.2s infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.analysis-progress { 
+  width: 100%; 
+  max-width: 400px; 
+  height: 6px; 
+  background: var(--border-light); 
+  border-radius: 3px; 
+  overflow: hidden;
+}
+
+.progress-bar { 
+  height: 100%; 
+  width: 0%; 
+  background: var(--gait-accent); 
+  transition: width 0.3s; 
+}
+
+#analysisStatus {
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+/* ===== Results ===== */
+.results-card { 
+  padding: 0; 
+  overflow: hidden; 
+}
+
+.results-toolbar {
+  padding: 1.2rem 2rem; 
+  border-bottom: 1px solid var(--border-light);
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  flex-wrap: wrap; 
+  gap: 1rem;
+}
+
+.results-meta { 
+  display: flex; 
+  align-items: center; 
+  gap: 1rem; 
+}
+
+.badge-ai { 
+  background: var(--gait-accent); 
+  color: white; 
+  padding: 0.3rem 1.2rem; 
+  border-radius: 2rem; 
+  font-size: 0.8rem; 
+  font-weight: 600;
+}
+
+#resultDate {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.results-actions { 
+  display: flex; 
+  gap: 0.8rem; 
+}
+
+.tool-btn {
+  background: var(--surface); 
+  border: 1px solid var(--border-light); 
+  padding: 0.6rem 1.2rem;
+  border-radius: 2rem; 
+  cursor: pointer; 
+  display: flex; 
+  align-items: center; 
+  gap: 0.5rem;
+  color: var(--text-primary);
+  transition: all 0.2s;
+}
+
+.tool-btn:hover {
+  border-color: var(--gait-accent);
+  background: var(--gait-accent-soft);
+  transform: translateY(-2px);
+}
+
+.tool-btn.secondary {
+  background: transparent;
+}
+
+.results-body { 
+  padding: 2rem; 
+  max-height: 550px; 
+  overflow-y: auto; 
+}
+
+.typography-clean {
+  line-height: 1.7;
+}
+
+.typography-clean h1,
+.typography-clean h2,
+.typography-clean h3 {
+  color: var(--gait-accent);
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.typography-clean h2 {
+  font-size: 1.4rem;
+  border-bottom: 1px solid var(--border-light);
+  padding-bottom: 0.5rem;
+}
+
+.typography-clean ul,
+.typography-clean ol {
+  padding-left: 1.5rem;
+  margin: 0.75rem 0;
+}
+
+.typography-clean li {
+  margin-bottom: 0.25rem;
+}
+
+.typography-clean p {
+  margin-bottom: 0.75rem;
+}
+
+.typography-clean strong {
+  color: var(--text-primary);
+}
+
+/* ===== History drawer ===== */
+.history-drawer {
+  position: fixed; 
+  top: 0; 
+  left: -400px; 
+  width: 400px; 
+  height: 100vh; 
+  background: var(--card-bg);
+  backdrop-filter: blur(20px); 
+  border-right: 1px solid var(--border-light); 
+  z-index: 1000;
+  transition: left 0.3s; 
+  display: flex; 
+  flex-direction: column;
+  box-shadow: var(--shadow-hover);
+}
+
+.history-drawer.active { 
+  left: 0; 
+}
+
+.drawer-header { 
+  padding: 1.5rem; 
+  border-bottom: 1px solid var(--border-light); 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center;
+}
+
+.drawer-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.drawer-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 0.25rem;
+  border-radius: 50%;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.drawer-close-btn:hover {
+  background: var(--gait-accent-soft);
+  color: var(--gait-accent);
+}
+
+.history-content { 
+  flex: 1; 
+  overflow-y: auto; 
+  padding: 1.2rem; 
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.empty-state i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.history-item {
+  background: var(--surface); 
+  border-radius: 1rem; 
+  padding: 1.2rem; 
+  margin-bottom: 1rem;
+  border: 1px solid var(--border-light); 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.history-item:hover { 
+  border-color: var(--gait-accent); 
+  transform: translateX(-4px); 
+  box-shadow: var(--shadow-sm);
+}
+
+.history-info {
+  flex: 1;
+}
+
+.history-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.history-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.meta-tag {
+  background: var(--gait-accent-soft);
+  color: var(--gait-accent);
+  padding: 0.2rem 0.6rem;
+  border-radius: 1rem;
+  font-weight: 500;
+}
+
+.view-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.view-btn:hover {
+  background: var(--gait-accent-soft);
+  color: var(--gait-accent);
+}
+
+/* ===== Toast ===== */
+#toast-container { 
+  position: fixed; 
+  bottom: 24px; 
+  right: 24px; 
+  z-index: 2000; 
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.toast {
+  background: var(--surface); 
+  border-left: 4px solid var(--gait-accent); 
+  padding: 14px 22px;
+  border-radius: 12px; 
+  box-shadow: var(--shadow-hover); 
+  display: flex; 
+  align-items: center; 
+  gap: 12px;
+  animation: slideUp 0.3s; 
+  max-width: 350px;
+  color: var(--text-primary);
+}
+
+.toast.success {
+  border-left-color: #10b981;
+}
+
+.toast.error {
+  border-left-color: #dc2626;
+}
+
+.toast.info {
+  border-left-color: #3b82f6;
+}
+
+.toast i {
+  font-size: 1.2rem;
+}
+
+.toast.success i {
+  color: #10b981;
+}
+
+.toast.error i {
+  color: #dc2626;
+}
+
+.toast.info i {
+  color: #3b82f6;
+}
+
+@keyframes slideUp { 
+  from { opacity: 0; transform: translateY(20px); } 
+  to { opacity: 1; transform: translateY(0); } 
+}
+
+/* ===== Mobile responsiveness ===== */
+@media (max-width: 768px) {
+  .gait-main {
+    padding: 1rem 0.75rem 1.5rem;
+  }
+  
+  .glass-card {
+    padding: 1.25rem;
+  }
+  
+  .step-connector { 
+    width: 40px; 
+  }
+  
+  .step-number {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+  
+  .step-label {
+    font-size: 0.8rem;
+  }
+  
+  /* Stack layout vertically */
+  .record-layout {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .camera-column,
+  .controls-column {
+    width: 100%;
+    min-width: unset;
+  }
+  
+  .camera-view.tall {
+    max-height: 55vh;
+  }
+  
+  .controls-column .record-controls {
+    flex-direction: column;
+  }
+  
+  .controls-column .btn-primary,
+  .controls-column .btn-record {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .recording-timer {
+    padding: 0.6rem 1rem;
+  }
+  
+  .preview-actions {
+    flex-direction: column;
+  }
+  
+  .results-toolbar {
+    padding: 1rem 1.25rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .results-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  
+  .tool-btn {
+    flex: 1;
+    justify-content: center;
+  }
+  
+  .results-body {
+    padding: 1.25rem;
+    max-height: 400px;
+  }
+  
+  .history-drawer { 
+    width: 320px; 
+    left: -320px; 
+  }
+  
+  #toast-container {
+    bottom: 16px;
+    right: 16px;
+    left: 16px;
+  }
+  
+  .toast {
+    max-width: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .step-connector {
+    width: 25px;
+    margin: 0 0.5rem;
+  }
+  
+  .step-number {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .camera-view.tall {
+    max-height: 50vh;
+  }
+  
+  .analysis-card {
+    padding: 2rem 1rem;
+  }
+  
+  .gait-spinner {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .history-drawer {
+    width: 90%;
+    left: -100%;
+  }
+}
+
+/* ===== Print styles ===== */
+@media print {
+  .navbar,
+  .gait-progress,
+  .record-controls,
+  .results-toolbar,
+  .history-drawer,
+  #toast-container,
+  .no-print {
+    display: none !important;
+  }
+  
+  .results-card {
+    box-shadow: none;
+    border: none;
+  }
+  
+  .results-body {
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+
+/* Patient Name Input */
+.patient-name-section {
+  margin-bottom: 1rem;
+}
+
+.patient-name-section label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.patient-name-input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border-radius: 3rem;
+  border: 1px solid var(--border-light);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.patient-name-input:focus {
+  outline: none;
+  border-color: var(--gait-accent);
+  box-shadow: 0 0 0 3px var(--gait-accent-soft);
+}
+
+/* History Search Bar */
+.history-search {
+  padding: 0.75rem 1.2rem;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--surface);
+}
+
+.history-search i {
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+.history-search input {
+  flex: 1;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border-light);
+  border-radius: 2rem;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.history-search input:focus {
+  border-color: var(--gait-accent);
+}
+
+.history-search input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+/* Preview Modal Styles (same as ROM) */
+.preview-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.preview-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.preview-card {
+  position: relative;
+  background: var(--surface);
+  border-radius: 24px;
+  max-width: 500px;
+  width: 90%;
+  margin: 20px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.3s ease;
+  overflow: hidden;
+}
+
+.preview-card-header {
+  background: linear-gradient(135deg, var(--gait-accent), #00695c);
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: white;
+}
+
+.preview-icon {
+  font-size: 32px;
+}
+
+.preview-card-header h3 {
+  margin: 0;
+  flex: 1;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.preview-close {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.preview-close:hover {
+  background: rgba(255,255,255,0.3);
+  transform: scale(1.1);
+}
+
+.preview-card-body {
+  padding: 24px;
+}
+
+.preview-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.preview-badge {
+  background: var(--gait-accent-soft);
+  color: var(--gait-accent);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.preview-date {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.preview-description {
+  margin-bottom: 24px;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.preview-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.preview-btn {
+  flex: 1;
+  padding: 12px 20px;
+  border-radius: 40px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  text-align: center;
+}
+
+.preview-btn.primary {
+  background: var(--gait-accent);
+  color: white;
+}
+
+.preview-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 150, 136, 0.3);
+}
+
+.preview-btn.secondary {
+  background: var(--surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
+}
+
+.preview-btn.secondary:hover {
+  background: var(--border-light);
+}
+
+.preview-note {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .preview-card {
+  background: #1e2a32;
+}
+[data-theme="dark"] .preview-btn.secondary {
+  background: #2e3b45;
+  color: #eef2f6;
+  border-color: #3e4b55;
+}

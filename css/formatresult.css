@@ -1,0 +1,676 @@
+/* css/result.css - Styles for Assessment Result Page */
+
+.result-container {
+  max-width: 1100px;
+  margin: 2rem auto;
+  padding: 0 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.result-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  padding: 0.8rem 1.5rem;
+  border-radius: 2rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.action-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+  transform: translateY(-2px);
+}
+
+.action-btn.primary {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.action-btn.primary:hover {
+  background: #00695c;
+  box-shadow: 0 8px 20px var(--accent-soft);
+}
+
+#assessmentOutput {
+  background: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  color: #1f2933;
+  font-family: 'Courier New', 'Courier', monospace;
+  line-height: 1.6;
+  font-size: 14px;
+  border: 1px solid #e3e6ea;
+  
+  /* Critical overflow fixes */
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  word-wrap: break-word;
+  box-sizing: border-box;
+}
+
+#assessmentOutput pre,
+#assessmentOutput table {
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+[data-theme="dark"] #assessmentOutput {
+  background: #1e2a32;
+  color: #eef2f6;
+  border-color: #2e3b45;
+}
+
+.print-header {
+  display: none;
+}
+
+@media print {
+  .no-print { display: none; }
+  .print-header { 
+    display: block; 
+    text-align: center;
+    margin-bottom: 2rem;
+    font-family: 'Courier New', monospace;
+  }
+  #assessmentOutput { 
+    box-shadow: none; 
+    padding: 0; 
+    border: none;
+    background: white;
+    color: black;
+    overflow-x: visible;
+    white-space: pre-wrap;
+  }
+}
+
+/* Modal Styles - FIXED to appear as popup */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal.show {
+  display: flex;
+}
+
+.modal-content {
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-light);
+  border-radius: 1.5rem;
+  padding: 2rem;
+  max-width: 450px;
+  width: 90%;
+  margin: 0 auto;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.download-modal h3 {
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+  font-size: 1.3rem;
+  text-align: center;
+}
+
+.download-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.download-options button {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#downloadDocxOption {
+  background: #2b5797;
+  color: white;
+}
+
+#downloadDocxOption:hover {
+  background: #1e3f6e;
+  transform: translateY(-2px);
+}
+
+#downloadWordOption {
+  background: #2b5797;
+  color: white;
+  opacity: 0.9;
+}
+
+#downloadWordOption:hover {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+#downloadRtfOption {
+  background: #009688;
+  color: white;
+}
+
+#downloadRtfOption:hover {
+  background: #00695c;
+  transform: translateY(-2px);
+}
+
+#downloadTxtOption {
+  background: var(--surface);
+  border: 2px solid var(--border-light);
+  color: var(--text-primary);
+}
+
+#downloadTxtOption:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+#cancelDownload {
+  background: transparent;
+  border: 1px solid var(--border-light);
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+}
+
+#cancelDownload:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+/* Share Modal */
+.share-modal .modal-content {
+  max-width: 500px;
+}
+
+.share-link-container {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+}
+
+.share-link-container input {
+  flex: 1;
+  padding: 1rem;
+  border: 2px solid var(--border-light);
+  border-radius: 2rem;
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.share-link-container button {
+  padding: 1rem 1.5rem;
+  border-radius: 2rem;
+  background: var(--accent);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.share-link-container button:hover {
+  background: #00695c;
+  transform: translateY(-2px);
+}
+
+.share-note {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* Ensure body and html don't overflow */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Loading state */
+.loading-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-secondary);
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--border-light);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  margin: 0 auto 1rem;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+
+
+/* ===== Rich Text Editor Styles for formatresult.html ===== */
+
+/* Editor Container */
+.editor-container {
+  margin-top: 1rem;
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+  transition: all 0.3s ease;
+  background: var(--surface);
+  width: 100%;
+}
+
+.editor-container:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* TinyMCE Customization */
+.tox-tinymce {
+  border-radius: 1rem !important;
+  border: none !important;
+}
+
+.tox .tox-editor-header {
+  background: var(--surface) !important;
+  border-bottom: 1px solid var(--border-light) !important;
+}
+
+.tox .tox-toolbar,
+.tox .tox-toolbar__primary,
+.tox .tox-toolbar__overflow {
+  background: var(--surface) !important;
+}
+
+.tox .tox-tbtn {
+  color: var(--text-primary) !important;
+}
+
+.tox .tox-tbtn:hover {
+  background: var(--accent-soft) !important;
+}
+
+.tox .tox-tbtn--enabled {
+  background: var(--accent-soft) !important;
+  color: var(--accent) !important;
+}
+
+.tox .tox-edit-area {
+  background: var(--surface) !important;
+}
+
+.tox .tox-edit-area__iframe {
+  background: var(--surface) !important;
+}
+
+/* Dark mode for TinyMCE */
+[data-theme="dark"] .tox .tox-toolbar,
+[data-theme="dark"] .tox .tox-toolbar__primary,
+[data-theme="dark"] .tox .tox-toolbar__overflow {
+  background: var(--surface) !important;
+}
+
+[data-theme="dark"] .tox .tox-tbtn__icon-wrap svg {
+  fill: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .tox .tox-mbtn__select-label {
+  color: var(--text-primary) !important;
+}
+
+/* Loading State for Editor */
+.editor-loading {
+  position: relative;
+  min-height: 400px;
+  background: var(--surface);
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.editor-loading::before {
+  content: '';
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-light);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Word Document Export Styles */
+.word-document-styles {
+  font-family: 'Arial', 'Helvetica', sans-serif;
+  line-height: 1.6;
+  color: #333;
+}
+
+.word-document-styles h1 {
+  color: #00695c;
+  font-size: 24px;
+  margin-top: 20px;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #00695c;
+  padding-bottom: 5px;
+}
+
+.word-document-styles h2 {
+  color: #00897b;
+  font-size: 20px;
+  margin-top: 18px;
+  margin-bottom: 12px;
+}
+
+.word-document-styles h3 {
+  color: #009688;
+  font-size: 18px;
+  margin-top: 15px;
+  margin-bottom: 10px;
+}
+
+.word-document-styles table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 15px 0;
+  font-size: 14px;
+}
+
+.word-document-styles th,
+.word-document-styles td {
+  border: 1px solid #ddd;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.word-document-styles th {
+  background-color: #f5f5f5;
+  font-weight: bold;
+}
+
+.word-document-styles ul,
+.word-document-styles ol {
+  margin: 10px 0;
+  padding-left: 30px;
+}
+
+.word-document-styles li {
+  margin: 5px 0;
+}
+
+.word-document-styles strong {
+  color: #00695c;
+  font-weight: bold;
+}
+
+/* Enhanced Action Buttons for Result Page */
+.result-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.action-btn {
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  padding: 0.8rem 1.5rem;
+  border-radius: 2rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.action-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+  transform: translateY(-2px);
+}
+
+.action-btn.primary {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.action-btn.primary:hover {
+  background: #00695c;
+  box-shadow: 0 8px 20px var(--accent-soft);
+}
+
+/* Toast Notification */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  padding: 1rem 2rem;
+  background: var(--accent);
+  color: white;
+  border-radius: 2rem;
+  box-shadow: var(--shadow-hover);
+  z-index: 2000;
+  max-width: 300px;
+  transition: opacity 0.3s ease;
+  font-weight: 500;
+  animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.toast.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(100%);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .editor-container {
+    margin-top: 0.75rem;
+  }
+  
+  .result-actions {
+    gap: 0.5rem;
+  }
+  
+  .action-btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+  }
+  
+  .toast {
+    bottom: 1rem;
+    right: 1rem;
+    left: 1rem;
+    max-width: none;
+    text-align: center;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .editor-container {
+    border: none;
+    padding: 0;
+  }
+  
+  .tox-tinymce {
+    border: none !important;
+  }
+  
+  .tox .tox-editor-header {
+    display: none !important;
+  }
+  
+  .tox .tox-edit-area {
+    border: none !important;
+  }
+  
+  .result-actions,
+  .navbar,
+  .site-footer {
+    display: none !important;
+  }
+}
+
+
+
+/* Public toggle switch */
+.public-toggle {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+.switch-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 26px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 34px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+input:checked + .slider {
+  background-color: var(--accent);
+}
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+.slider.round {
+  border-radius: 34px;
+}
+.slider.round:before {
+  border-radius: 50%;
+}
+
+/* Fix for Android input focus */
+input, textarea, select, button {
+  -webkit-user-select: text;
+  user-select: text;
+  touch-action: manipulation;
+}
+.modal-content input, .modal-content textarea, .modal-content select {
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  font-size: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+.modal-content input:focus, .modal-content textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}

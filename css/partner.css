@@ -1,0 +1,132 @@
+/* css/partner.css — Rehablix Partners page */
+
+.partner-main {
+  min-height: 80vh;
+  padding: 6rem 1.5rem 3rem;
+  display: flex;
+  justify-content: center;
+}
+
+.partner-container {
+  width: 100%;
+  max-width: 880px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.glass-card {
+  background: var(--settings-card-bg);
+  backdrop-filter: none;
+  border: 1px solid var(--settings-border);
+  border-radius: 16px;
+  box-shadow: var(--settings-shadow);
+}
+
+.loading-spinner {
+  width: 34px;
+  height: 34px;
+  border: 3px solid var(--settings-border);
+  border-top-color: var(--settings-accent);
+  border-radius: 50%;
+  margin: 0 auto 1rem;
+  animation: partnerSpin 0.8s linear infinite;
+}
+@keyframes partnerSpin { to { transform: rotate(360deg); } }
+
+/* ---------- Hero blocks (loading / logged-out / pending / rejected / intro) ---------- */
+.partner-hero {
+  padding: 2.5rem 2rem;
+  text-align: center;
+}
+.partner-hero-icon { font-size: 2.75rem; margin-bottom: 0.75rem; }
+.partner-hero h1 { margin: 0 0 0.75rem; font-size: 1.6rem; color: var(--settings-text); }
+.partner-hero p { color: var(--settings-text-secondary); max-width: 560px; margin: 0 auto 1.25rem; line-height: 1.6; }
+
+/* ---------- Benefits row ---------- */
+.partner-benefits {
+  padding: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+.partner-benefit { display: flex; gap: 0.75rem; align-items: flex-start; }
+.partner-benefit .pb-icon { font-size: 1.5rem; }
+.partner-benefit h4 { margin: 0 0 0.25rem; font-size: 0.95rem; color: var(--settings-text); }
+.partner-benefit p { margin: 0; font-size: 0.85rem; color: var(--settings-text-secondary); }
+
+@media (max-width: 720px) {
+  .partner-benefits { grid-template-columns: 1fr; }
+}
+
+/* ---------- Apply form ---------- */
+.partner-apply-form textarea {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid var(--settings-border);
+  background: var(--settings-card-bg);
+  color: var(--settings-text);
+  font-family: inherit;
+  resize: vertical;
+}
+
+/* ---------- Dashboard ---------- */
+.partner-dash-header { text-align: left; margin-bottom: 0.5rem; }
+.partner-dash-header h1 { margin: 0 0 0.25rem; font-size: 1.6rem; color: var(--settings-text); }
+.view-subtitle { color: var(--settings-text-secondary); margin: 0; }
+
+.partner-link-card { padding: 1.25rem 1.5rem; }
+.partner-link-card label { display: block; font-size: 0.85rem; color: var(--settings-text-secondary); margin-bottom: 0.5rem; }
+.partner-link-row { display: flex; gap: 0.6rem; }
+.partner-link-row input {
+  flex: 1;
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid var(--settings-border);
+  background: var(--settings-card-bg);
+  color: var(--settings-text);
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+.partner-link-row button { white-space: nowrap; }
+
+.partner-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+.partner-stat {
+  padding: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.ps-label { font-size: 0.8rem; color: var(--settings-text-secondary); }
+.ps-value { font-size: 1.5rem; font-weight: 700; color: var(--settings-accent); }
+
+@media (max-width: 720px) {
+  .partner-stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.partner-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+.partner-table th {
+  text-align: left;
+  padding: 0.6rem 0.75rem;
+  color: var(--settings-text-secondary);
+  border-bottom: 1px solid var(--settings-border);
+  font-weight: 600;
+}
+.partner-table td {
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid var(--settings-border);
+  color: var(--settings-text);
+}
+.partner-table tr:last-child td { border-bottom: none; }
+
+.table-scroll { overflow-x: auto; }
+

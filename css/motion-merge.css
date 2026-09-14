@@ -1,0 +1,98 @@
+/* css/motion-merge.css
+   Styling for the merged Motion & Gait Analyzer page (rom.html):
+   the ROM/Gait mode tabs, and the mode-scoped show/hide rules that keep
+   the two capture flows from overlapping. Also covers the Auto-Guided
+   Scan (voice + live pose tracking) UI added to the ROM flow. */
+
+/* ---------- Mode visibility ---------- */
+body[data-active-mode="rom"] .gait-only { display: none !important; }
+body[data-active-mode="gait"] .rom-only { display: none !important; }
+
+/* ---------- Mode tab switcher ---------- */
+.motion-mode-tabs {
+  display: flex;
+  gap: 0.5rem;
+  max-width: 480px;
+  margin: 0 auto 1.5rem;
+  padding: 0.3rem;
+  border-radius: 999px;
+  background: var(--rom-accent-soft, rgba(0, 150, 136, 0.12));
+}
+
+.motion-mode-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.6rem 0.75rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary, inherit);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.motion-mode-tab.active {
+  background: var(--rom-accent, var(--accent));
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 150, 136, 0.35);
+}
+
+/* ---------- Auto-Guided Scan toggle ---------- */
+.auto-guided-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--rom-accent, var(--accent));
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: var(--rom-accent, var(--accent));
+  width: fit-content;
+}
+
+.auto-guided-toggle input {
+  accent-color: var(--rom-accent, var(--accent));
+}
+
+/* ---------- Live angle readout during Auto-Guided Scan ---------- */
+.live-angle-readout {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  justify-content: center;
+  margin-top: 0.9rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.9rem;
+  background: var(--rom-accent-soft, rgba(0, 150, 136, 0.12));
+}
+
+.live-angle-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--rom-accent, var(--accent));
+}
+
+.live-angle-label {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.live-angle-hint {
+  margin-left: auto;
+  font-size: 0.78rem;
+  opacity: 0.85;
+}
+
+@media (max-width: 560px) {
+  .motion-mode-tab span,
+  .motion-mode-tab { font-size: 0.78rem; }
+  .live-angle-readout { flex-wrap: wrap; }
+  .live-angle-hint { margin-left: 0; }
+}

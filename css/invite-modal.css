@@ -1,0 +1,109 @@
+/* css/invite-modal.css - popup for pending center invitations */
+
+.im-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  padding: 1rem;
+}
+
+.im-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.im-box {
+  background: var(--surface, #1e1e1e);
+  color: var(--text-primary, #fff);
+  border-radius: 1rem;
+  max-width: 440px;
+  width: 100%;
+  padding: 1.75rem 1.5rem;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.im-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(0, 150, 136, 0.15);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin: 0 auto 1rem;
+}
+
+.im-box h3 {
+  font-size: 1.05rem;
+  margin-bottom: 1.1rem;
+}
+
+.im-invite-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-bottom: 1.1rem;
+}
+
+.im-invite-row {
+  padding: 0.9rem 1rem;
+  border-radius: 0.75rem;
+  background: rgba(0, 150, 136, 0.08);
+  text-align: left;
+}
+
+.im-invite-row p {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin-bottom: 0.75rem;
+}
+
+.im-invite-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.im-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.55rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.im-btn-decline {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: inherit;
+}
+
+.im-btn-accept {
+  background: var(--accent);
+  color: #fff;
+}
+
+.im-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.im-later-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary, #999);
+  font-size: 0.8rem;
+  text-decoration: underline;
+  cursor: pointer;
+}

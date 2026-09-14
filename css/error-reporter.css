@@ -1,0 +1,91 @@
+/* css/error-reporter.css - Shared "let us know about this issue" modal */
+
+.api-issue-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  padding: 16px;
+}
+
+.api-issue-overlay.visible {
+  display: flex;
+}
+
+.api-issue-modal {
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px 20px;
+  width: 100%;
+  max-width: 320px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  animation: apiIssuePop 0.15s ease-out;
+}
+
+@keyframes apiIssuePop {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.api-issue-text {
+  margin: 0 0 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.api-issue-checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 20px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.api-issue-checkbox input {
+  cursor: pointer;
+}
+
+.api-issue-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.api-issue-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.api-issue-btn:hover {
+  opacity: 0.85;
+}
+
+.api-issue-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.api-issue-btn-secondary {
+  background: #f1f1f1;
+  color: #333;
+}
+
+.api-issue-btn-primary {
+  background: var(--accent, #4f46e5);
+  color: #fff;
+}

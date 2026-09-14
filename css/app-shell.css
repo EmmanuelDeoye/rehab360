@@ -1,0 +1,209 @@
+/* css/app-shell.css
+   Phase 1 of the Lixa/Workspace refactor.
+   Reuses the existing design tokens defined in css/main.css
+   (--bg-page, --surface, --border-light, --text-primary, --text-secondary,
+   --accent, --shadow-sm, --card-bg) so dark mode and the teal brand
+   identity carry over automatically — no second theme system.
+*/
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-page);
+}
+
+.app-view {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.25rem 1rem calc(96px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+/* ---------- Bottom nav ---------- */
+.app-bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border-light);
+  padding: 0.4rem max(1rem, env(safe-area-inset-left)) calc(0.4rem + env(safe-area-inset-bottom));
+  box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.04);
+}
+
+.app-nav-btn {
+  flex: 1 1 0;
+  max-width: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+  border-radius: 12px;
+  cursor: pointer;
+  min-height: 48px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.app-nav-btn svg {
+  color: inherit;
+}
+
+.app-nav-btn:hover {
+  background: var(--accent-soft);
+}
+
+.app-nav-btn.is-active {
+  color: var(--accent);
+}
+
+/* ---------- Lixa view ----------
+   (Phase 8 consolidation: this used to style a JS-rendered composer for
+   #lixaView. Since Phase 2, #lixaView is the real ask.html markup styled
+   by css/lixa-embed.css instead, so .lixa-header/.lixa-composer/
+   .lixa-input/.lixa-send-btn/.lixa-quick-actions/.lixa-chip/.lixa-note
+   have had no matching HTML anywhere in the app since Phase 2 — removed
+   as dead code, confirmed unused via a full-codebase grep first.) */
+
+/* ---------- Workspace view ---------- */
+.workspace-header {
+  margin-bottom: 1.25rem;
+}
+
+.workspace-header h2 {
+  margin: 0 0 0.15rem;
+  font-size: 1.5rem;
+  color: var(--text-primary);
+}
+
+.workspace-subtitle {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.workspace-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+@media (min-width: 560px) {
+  .workspace-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.workspace-card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  padding: 1rem;
+  text-decoration: none;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+  min-height: 48px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.workspace-card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-1px);
+}
+
+.workspace-card-icon {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.workspace-card-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.workspace-card-title {
+  font-weight: 600;
+  font-size: 0.98rem;
+}
+
+.workspace-card-desc {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.workspace-card-arrow {
+  flex: 0 0 auto;
+  color: var(--text-secondary);
+}
+
+.workspace-card:hover .workspace-card-arrow {
+  color: var(--accent);
+}
+
+/* Plan card + subscription modal now live inside #workspaceView; give
+   them breathing room from the cards above. Existing rules from
+   css/main.css / css/sub.css still apply to their internals unchanged. */
+#workspaceView .current-plan-section {
+  margin-top: 1.5rem;
+}
+
+/* ---------- Center context banner (reused, now inside the app shell) ---------- */
+#appShell .center-context-banner {
+  max-width: 720px;
+  margin: 0.75rem auto 0;
+  padding: 0 1rem;
+  box-sizing: border-box;
+}
+
+/* .workspace-footer-link ("Pricing & FAQ" link) removed in Phase 9 —
+   the FAQ/pricing content it pointed to now lives directly in
+   Workspace (folded in from the old marketing homepage), so the
+   escape-hatch link is no longer accurate and was removed rather than
+   left pointing at now-empty content. */
+
+.back-to-app-link {
+  padding: 0.75rem 1rem 0;
+  margin: 0;
+}
+
+.back-to-app-link a {
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.back-to-app-link a:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Accessibility pass (Phase 8, brief section 31) ----------
+   The scoped, button/link-specific rule that used to be here is now
+   redundant — Phase 12 added a sitewide `:focus-visible` rule in
+   css/main.css covering every button/link/input on every page,
+   including these, so it's covered without duplication. */
